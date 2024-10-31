@@ -1,31 +1,29 @@
+import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword } from "firebase/auth";
+
+const auth = getAuth();
+
 document.getElementById('loginForm').addEventListener('submit', async function(event) {
     event.preventDefault();
 
-    const username = document.getElementById('username').value;
+    const username = document.getElementById('username').value; // This will be the email
     const password = document.getElementById('password').value;
 
-    const response = await fetch('/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username, password })
-    });
-
-    const text = await response.text(); // Get the raw response as text
-    console.log(text); // Check the response content
-
     try {
-        const data = JSON.parse(text); // Parse the text as JSON
-    // Proceed with your logic here...
+        // Sign in the user
+        const userCredential = await signInWithEmailAndPassword(auth, username, password);
+        const user = userCredential.user;
+
+        // Optionally, fetch user data from Firestore
+        const docRef = doc(db, "users", user.uid); // Change this to your user identification
+        const docSnap = await getDoc(docRef);
+        if (docSnap.exists()) {
+            localStorage.setItem('money', docSnap.data().money); // Store money amount locally
+            window.location.href = 'game.html'; // Redirect to game
+        } else {
+            console.log("No such document!");
+        }
     } catch (error) {
-        console.error("Failed to parse JSON:", error);
-    }
-
-    const data = await response.json();
-
-    if (data.success) {
-        localStorage.setItem('username', username); // Store username locally
-        window.location.href = './game.html' // Redirect to game
-    } else {
-        document.getElementById('loginMessage').textContent = 'Invalid username or password.';
+        console.error("Error logging in:", error);
+        document.getElementById('loginMessage').textContent = error.message; // Show error message
     }
 });
