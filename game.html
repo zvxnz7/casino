@@ -1,14 +1,14 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <script src="https://www.gstatic.com/firebasejs/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/firebase-firestore-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/firebase-analytics-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.13.1/firebase-auth.js"></script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Casino</title>
     <link rel="stylesheet" href="styles.css">
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/10.13.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.13.1/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.13.1/firebase-firestore.js"></script>
 </head>
 <body>
     <div class="container">
@@ -22,9 +22,7 @@
         <!-- Game Board -->
         <div class="game-board-container">
             <div id="gameBoard" class="game-board">
-                <div class="cell" data-cell></div>
-                <div class="cell" data-cell></div>
-                <div class="cell" data-cell></div>
+                <!-- Game cells go here -->
                 <div class="cell" data-cell></div>
                 <div class="cell" data-cell></div>
                 <div class="cell" data-cell></div>
