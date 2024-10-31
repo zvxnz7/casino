@@ -17,35 +17,38 @@ const db = firebase.firestore();
 // Event listener for login form submission
 document.getElementById('loginForm').addEventListener('submit', async function(event) {
     event.preventDefault();
-    const username = document.getElementById('username').value; // This will be the email
+    const username = document.getElementById('username').value;
     const password = document.getElementById('password').value;
-    
+
     try {
-        // Firebase Authentication: Sign in with email and password
-        const userCredential = await firebase.auth().signInWithEmailAndPassword(username, password);
-        const user = userCredential.user;
+        // Query Firestore to find a document with the matching username
+        const userQuery = await firebase.firestore().collection('users')
+            .where('username', '==', username)
+            .get();
 
-        if (user) {
-            // User signed in successfully; retrieve money amount from Firestore
-            const userDoc = await firebase.firestore().collection('users').doc(user.uid).get();
+        if (userQuery.empty) {
+            alert('Username not found.');
+            return;
+        }
 
-            if (userDoc.exists) {
-                const userData = userDoc.data();
-                const userMoney = userData.money;
+        // Assume the username is unique, so get the first match
+        const userDoc = userQuery.docs[0];
+        const userData = userDoc.data();
 
-                // Save user's money data or pass it to the game.html page if needed
-                localStorage.setItem('userMoney', userMoney);
+        // Check if the provided password matches the stored password
+        if (userData.password === password) {  // In production, compare hashed passwords
+            // Login successful, retrieve and store user's money
+            const userMoney = userData.money;
+            localStorage.setItem('userMoney', userMoney);
 
-                // Redirect to game.html
-                window.location.href = 'game.html';
-            } else {
-                console.log('User data not found in Firestore.');
-                alert('User data could not be retrieved.');
-            }
+            // Redirect to game.html
+            window.location.href = 'game.html';
+        } else {
+            alert('Incorrect password.');
         }
     } catch (error) {
-        console.error('Error signing in:', error.message);
-        alert('Login failed. Please check your credentials.');
+        console.error('Error during login:', error.message);
+        alert('Login failed. Please try again.');
     }
 });
 
