@@ -32,10 +32,6 @@ body {
     position: relative;
 }
 
-.bomb-container {
-    margin-bottom: 20px;
-}
-
 /* Money display styling */
 .money-display {
     font-size: 2rem;
@@ -182,7 +178,6 @@ body {
     transition: background-color 0.2s;
 }
 
-
 /* Mobile-Specific Styling */
 @media (max-width: 768px) {
     .game-board {
@@ -201,8 +196,8 @@ body {
         flex-direction: column;
         align-items: center;
         position: absolute;
-        left: 38%;
-        top: -10%;
+        left: 0%;
+        top: 90%;
     }
     
     .money-display {
