@@ -62,7 +62,6 @@ async function getMoney() {
 // Save the user's money to Firestore
 async function updateMoney() {
     try {
-        // Query Firestore to find a document with the matching username
         const userQuery = await firebase.firestore().collection('users')
             .where('username', '==', username)
             .get();
@@ -72,11 +71,11 @@ async function updateMoney() {
             return;
         }
 
-        // Assume the username is unique, so get the first match
         const userDoc = userQuery.docs[0];
         const userData = userDoc.data();
         userData.money = money;
 
+        await firebase.firestore().collection('users').doc(userDoc.id).update({ money: userData.money });
 
     } catch (error) {
         alert('Money failed. Please try again.');
