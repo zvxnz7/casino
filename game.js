@@ -53,10 +53,9 @@ async function getMoney() {
         const userData = userDoc.data();
         return (userData.money);
 
-
-        }
     } catch (error) {
         alert('Money failed. Please try again.');
+        console.log(err);
     }
 }
 
