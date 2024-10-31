@@ -9,6 +9,10 @@ const firebaseConfig = {
     measurementId: "G-LHMDCMRY9E"
 };
 
+const gameBoard = document.getElementById('gameBoard');
+const cells = document.querySelectorAll('[data-cell]');
+const betButton = document.getElementById('betButton');
+
 // Initialize Firebase
 const app = firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
