@@ -37,7 +37,7 @@ async function login() {
 
 // Retrieve the user's money from Firestore
 async function getMoney() {
-    money = userData.money;
+    money = username.money;
 //     try {
 //         const docRef = db.collection("users").doc(username);
 //         console.log(username);
