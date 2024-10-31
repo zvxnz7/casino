@@ -37,21 +37,22 @@ async function login() {
 
 // Retrieve the user's money from Firestore
 async function getMoney() {
-    try {
-        const docRef = db.collection("users").doc(username);
-        console.log(username);
-        const docSnap = await docRef.get();
-        if (docSnap.exists) {
-            return docSnap.data().money;
-        } else {
-            console.log("No such document! Returning default money.");
-            return 1000; // Default money value if user doesn't exist
-        }
-    } catch (error) {
-        console.error("Error fetching money:", error);
-        return 1000; // Return default if error occurs
-    }
-}
+    money = userData.money;
+//     try {
+//         const docRef = db.collection("users").doc(username);
+//         console.log(username);
+//         const docSnap = await docRef.get();
+//         if (docSnap.exists) {
+//             return docSnap.data().money;
+//         } else {
+//             console.log("No such document! Returning default money.");
+//             return 1000; // Default money value if user doesn't exist
+//         }
+//     } catch (error) {
+//         console.error("Error fetching money:", error);
+//         return 1000; // Return default if error occurs
+//     }
+// }
 
 // Save the user's money to Firestore
 async function updateMoney(username, money) {
