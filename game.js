@@ -93,8 +93,6 @@ function updateMltplierDisplay() {
     document.getElementById("multiplier").innerText = multiplier;
 }
 
-updateMoneyDisplay();
-
 betButton.addEventListener("click", function () {
     if (!gameStarted) {
         betAmount = parseInt(document.getElementById("betAmount").value);
