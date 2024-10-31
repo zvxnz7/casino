@@ -16,7 +16,7 @@ const db = firebase.firestore();
 document.getElementById('loginForm').addEventListener('submit', async function(event) {
     event.preventDefault();
     const username = document.getElementById('username').value; // This will be the email
-    const password = = document.getElementById('password').value;
+    const password = document.getElementById('password').value;
     
     if (password = await getPassword(username)) {} // Retrieve money from Firestore
 
