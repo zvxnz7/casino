@@ -4,8 +4,6 @@
     <script src="https://www.gstatic.com/firebasejs/7.13.1/firebase.js"></script>
     <script src="https://www.gstatic.com/firebasejs/firebase/init.js"></script>
     <script src="https://www.gstatic.com/firebasejs/7.13.1/firebase-app.js"></script>
-
-    <!-- Add Firebase products that you want to use -->
     <script src="https://www.gstatic.com/firebasejs/7.13.1/firebase-auth.js"></script>
     <script src="https://www.gstatic.com/firebasejs/7.13.1/firebase-firestore.js"></script>
     <meta charset="UTF-8">
@@ -15,13 +13,23 @@
 </head>
 <body>
     <div class="container">
-        <h1>Bomb Game</h1>
-
-        <!-- Money Display -->
-        <div class="money-display">
-            Money: $<span id="moneyAmount">1000</span>
+        <div class="bomb-container">
+            <h1>Bomb Game</h1>
         </div>
-        
+
+        <!-- Left Container -->
+        <div class="left-container">
+            <!-- Money Display -->
+            <div class="money-display">
+                $<span id="moneyAmount">1000</span>
+            </div>
+
+            <!-- Multiplier Display -->
+            <div class="multiplier-box">
+                <span id="multiplier">1</span>x
+            </div>
+        </div>
+
         <!-- Game Board -->
         <div class="game-board-container">
             <div id="gameBoard" class="game-board">
@@ -58,10 +66,7 @@
             <input type="number" id="betAmount" placeholder="Enter Amount" min="1">
             <button id="betButton">Place bets</button>
         </div>
-        <div class="mltplier-display">
-            <span id="multiplier">1</span>x
-        </div>
     </div>
-    <script type = "module" src="game.js"></script>
+    <script type="module" src="mines.js"></script>
 </body>
 </html>
