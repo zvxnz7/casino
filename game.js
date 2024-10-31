@@ -19,7 +19,7 @@ const auth = firebase.auth();
 const db = firebase.firestore();
 
 // Your game logic variables and functions here
-let username;
+let username = localStorage.getItem('userID');
 let money = 1000; // Default money value
 let multiplier = 1;
 let array = [];
@@ -28,9 +28,9 @@ let time = 0;
 let betAmount = 0;
 let gameStarted = false;
 
+
 // Function to set username and retrieve user's money from Firestore
 async function login() {
-    username = prompt("Enter your username:");
     money = await getMoney(username); // Retrieve money from Firestore
     updateMoneyDisplay();
 }
