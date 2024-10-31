@@ -19,7 +19,7 @@ const auth = firebase.auth();
 const db = firebase.firestore();
 
 // Your game logic variables and functions here
-let username = localStorage.getItem('userID');
+let username = localStorage.getItem('username');
 let money = 1000; // Default money value
 let multiplier = 1;
 let array = [];
@@ -37,30 +37,51 @@ async function login() {
 
 // Retrieve the user's money from Firestore
 async function getMoney() {
-    money = username.money;
-//     try {
-//         const docRef = db.collection("users").doc(username);
-//         console.log(username);
-//         const docSnap = await docRef.get();
-//         if (docSnap.exists) {
-//             return docSnap.data().money;
-//         } else {
-//             console.log("No such document! Returning default money.");
-//             return 1000; // Default money value if user doesn't exist
-//         }
-//     } catch (error) {
-//         console.error("Error fetching money:", error);
-//         return 1000; // Return default if error occurs
-//     }
-// }
+    try {
+        // Query Firestore to find a document with the matching username
+        const userQuery = await firebase.firestore().collection('users')
+            .where('username', '==', username)
+            .get();
+
+        if (userQuery.empty) {
+            alert('Username not found.');
+            return 1000;
+        }
+
+        // Assume the username is unique, so get the first match
+        const userDoc = userQuery.docs[0];
+        const userData = userDoc.data();
+        return (userData.money);
+
+
+        }
+    } catch (error) {
+        alert('Money failed. Please try again.');
+    }
+}
 
 // Save the user's money to Firestore
 async function updateMoney() {
     try {
-        await db.collection("users").doc(username).set({ money: money });
-        console.log("Money updated successfully!");
+        // Query Firestore to find a document with the matching username
+        const userQuery = await firebase.firestore().collection('users')
+            .where('username', '==', username)
+            .get();
+
+        if (userQuery.empty) {
+            alert('Username not found.');
+            return;
+        }
+
+        // Assume the username is unique, so get the first match
+        const userDoc = userQuery.docs[0];
+        const userData = userDoc.data();
+        userData.money = money;
+
+
+        }
     } catch (error) {
-        console.error("Error updating money:", error);
+        alert('Money failed. Please try again.');
     }
 }
 
