@@ -29,6 +29,11 @@ body {
 .container {
     text-align: center;
     padding: 20px;
+    position: relative;
+}
+
+.bomb-container {
+    margin-bottom: 20px;
 }
 
 /* Money display styling */
