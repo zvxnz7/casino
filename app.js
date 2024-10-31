@@ -19,6 +19,7 @@ document.getElementById('loginForm').addEventListener('submit', async function(e
     event.preventDefault();
     const username = document.getElementById('username').value;
     const password = document.getElementById('password').value;
+    localStorage.setItem('username', username);
 
     try {
         // Query Firestore to find a document with the matching username
@@ -34,7 +35,6 @@ document.getElementById('loginForm').addEventListener('submit', async function(e
         // Assume the username is unique, so get the first match
         const userDoc = userQuery.docs[0];
         const userData = userDoc.data();
-        localStorage.setItem('userID', userData);
 
         // Check if the provided password matches the stored password
         if (userData.password === password) {  // In production, compare hashed passwords
