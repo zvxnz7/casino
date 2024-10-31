@@ -13,7 +13,7 @@ document.getElementById('loginForm').addEventListener('submit', async function(e
 
     if (data.success) {
         localStorage.setItem('username', username); // Store username locally
-        window.location.href = 'game.html'; // Redirect to game
+        window.location.href = './game.html' // Redirect to game
     } else {
         document.getElementById('loginMessage').textContent = 'Invalid username or password.';
     }
