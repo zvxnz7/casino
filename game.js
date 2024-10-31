@@ -78,7 +78,6 @@ async function updateMoney() {
         userData.money = money;
 
 
-        }
     } catch (error) {
         alert('Money failed. Please try again.');
     }
