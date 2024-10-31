@@ -43,10 +43,10 @@ async function getMoney() {
             .where('username', '==', username)
             .get();
 
-        if (userQuery.empty) {
-            alert('Username not found.');
-            return 1000;
-        }
+        // if (userQuery.empty) {
+        //     alert('Username not found.');
+        //     return 1000;
+        // }
 
         // Assume the username is unique, so get the first match
         const userDoc = userQuery.docs[0];
