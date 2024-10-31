@@ -29,6 +29,11 @@ body {
 .container {
     text-align: center;
     padding: 20px;
+    position: relative;
+}
+
+.bomb-container {
+    margin-bottom: 20px;
 }
 
 /* Money display styling */
@@ -144,42 +149,40 @@ body {
     background-color: #444;
 }
 
-.mltplier-display {
-    font-size: 2rem;
-    margin-top: 30px;
-    color: #f1f1f1;
-    text-align: center;
+/* New styles for the left container, money display, and multiplier box */
+.left-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    position: absolute;
+    left: -50%;
+    top: 50%;
+    transform: translateY(-50%);
 }
 
-.login-container {
-    background-color: #333;
-    padding: 20px;
-    border-radius: 8px;
-    text-align: center;
+.money-display {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #a4ff9c;
+    font-size: 4em;
+    font-weight: bold;
+    margin-bottom: 20px;
+    transition: background-color 0.2s;
 }
 
-.login-container input {
-    width: 100%;
-    padding: 10px;
-    margin: 10px 0;
-    border: none;
-    border-radius: 4px;
+.multiplier-box {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #ffffff;
+    font-size: 4em;
+    font-weight: bold;
+    margin-bottom: 20px;
+    transition: background-color 0.2s;
 }
 
-.login-container button {
-    padding: 10px;
-    width: 100%;
-    border: none;
-    background-color: #555;
-    color: #fff;
-    font-size: 1rem;
-    border-radius: 4px;
-}
 
-#loginMessage {
-    color: red;
-}
-    
 /* Mobile-Specific Styling */
 @media (max-width: 768px) {
     .game-board {
@@ -191,5 +194,36 @@ body {
         width: 60px;
         height: 60px;
         font-size: 1.5rem; /* Adjust font size for smaller cells */
+    }
+
+    .left-container {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        position: absolute;
+        left: 38%;
+        top: -10%;
+    }
+    
+    .money-display {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #a4ff9c;
+        font-size: 2em;
+        font-weight: bold;
+        margin-bottom: 20px;
+        transition: background-color 0.2s;
+    }
+    
+    .multiplier-box {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #ffffff;
+        font-size: 2em;
+        font-weight: bold;
+        margin-bottom: 20px;
+        transition: background-color 0.2s;
     }
 }
