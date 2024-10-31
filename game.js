@@ -55,7 +55,7 @@ async function getMoney() {
 // }
 
 // Save the user's money to Firestore
-async function updateMoney(username, money) {
+async function updateMoney() {
     try {
         await db.collection("users").doc(username).set({ money: money });
         console.log("Money updated successfully!");
@@ -106,6 +106,7 @@ betButton.addEventListener("click", function () {
         if (!isNaN(betAmount) && betAmount > 0 && betAmount <= money) {
             money -= betAmount;
             updateMoneyDisplay();
+            updateMoney();
             generateArray();
             betButton.textContent = 'Payout';
         } else {
@@ -113,6 +114,7 @@ betButton.addEventListener("click", function () {
         }
     } else {
         revealBombs();
+        updateMoney();
         const payout = betAmount * multiplier;
         money += payout;
         updateMoneyDisplay();
