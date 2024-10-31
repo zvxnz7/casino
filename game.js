@@ -89,10 +89,6 @@ function generateArray() {
     updateMltplierDisplay();
 }
 
-function updateMoneyDisplay() {
-    document.getElementById("moneyAmount").innerText = money;
-}
-
 function updateMltplierDisplay() {
     document.getElementById("multiplier").innerText = multiplier;
 }
