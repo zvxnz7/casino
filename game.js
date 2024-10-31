@@ -31,14 +31,15 @@ let gameStarted = false;
 
 // Function to set username and retrieve user's money from Firestore
 async function login() {
-    money = await getMoney(username); // Retrieve money from Firestore
+    money = await getMoney(); // Retrieve money from Firestore
     updateMoneyDisplay();
 }
 
 // Retrieve the user's money from Firestore
-async function getMoney(username) {
+async function getMoney() {
     try {
         const docRef = db.collection("users").doc(username);
+        console.log(username);
         const docSnap = await docRef.get();
         if (docSnap.exists) {
             return docSnap.data().money;
