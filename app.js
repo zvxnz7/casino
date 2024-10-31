@@ -1,3 +1,6 @@
+import { getAuth, signInWithEmailAndPassword } from 'firebase/auth';
+const auth = getAuth();
+
 document.getElementById('loginForm').addEventListener('submit', async function(event) {
     event.preventDefault();
 
