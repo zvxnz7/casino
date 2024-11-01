@@ -1,0 +1,123 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: Arial, sans-serif;
+    background-color: #1a1f36;
+    color: #ffffff;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.navbar {
+    display: flex;
+    justify-content: space-between;
+    width: 100%;
+    padding: 1em;
+    background-color: #2b3249;
+}
+
+.navbar h1 {
+    color: #ffffff;
+    margin: 0;
+    font-size: 1.2em;
+    cursor: pointer;
+}
+
+.search-bar {
+    background-color: #3a4464;
+    color: #ffffff;
+    border: none;
+    padding: 0.5em;
+    border-radius: 5px;
+    outline: none;
+    width: 150px;
+}
+
+.container {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    margin-top: 20px;
+    gap: 40px;
+}
+
+.game-card {
+
+    background-color: #2b3249;
+    border-radius: 20px;
+    overflow: hidden;
+    text-align: center;
+    width: 400px;
+    transition: transform 0.3s;
+    cursor: pointer;
+}
+
+.game-card:hover {
+    transform: scale(1.1);
+}
+
+.game-card img {
+    width: 100%;
+    height: 300px;
+    object-fit: cover;
+}
+
+.game-card h2 {
+    color: #ffffff;
+    padding: 0.5em 0;
+    font-size: 2em;
+}
+
+.footer {
+    display: flex;
+    justify-content: space-around;
+    background-color: #2b3249;
+    width: 100%;
+    padding: 1em 0;
+    position: fixed;
+    bottom: 0;
+}
+
+.footer-item {
+    color: #ffffff;
+    cursor: pointer;
+    padding: 0.5em 1em;
+    font-size: 0.9em;
+}
+
+.footer-item:hover {
+    background-color: #3a4464;
+    border-radius: 5px;
+}
+
+@media (max-width: 768px) {
+    html, body {
+        overflow: scroll;
+        height: 100%;
+    }
+
+    .game-card {
+
+        background-color: #2b3249;
+        border-radius: 20px;
+        overflow: hidden;
+        text-align: center;
+        width: 300px;
+        transition: transform 0.3s;
+    }
+    
+    .game-card:hover {
+        transform: scale(1);
+    }
+    
+    .game-card img {
+        width: 100%;
+        height: 225px;
+        object-fit: cover;
+    }
+}
