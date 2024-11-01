@@ -6,7 +6,7 @@ gameCards.forEach(card => {
     const gameName = card.getAttribute('data-game');
 
     card.addEventListener('click', () => {
-        window.location.href = 'mines.html';
+        window.location.href = gameName + '.html';
 
     });
 });
