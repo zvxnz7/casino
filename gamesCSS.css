@@ -6,7 +6,7 @@
 
 body {
     font-family: Arial, sans-serif;
-    background-color: #f1f1f1;
+    background-color: #222;
     color: #ffffff;
     display: flex;
     flex-direction: column;
@@ -29,7 +29,7 @@ body {
 }
 
 .search-bar {
-    background-color: #3a4464;
+    background-color: #555;
     color: #ffffff;
     border: none;
     padding: 0.5em;
