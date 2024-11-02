@@ -265,6 +265,7 @@ body {
     
     .money-display {
         align-items: center;
+        justify-content: center;
         display: flex;
         color: #a4ff9c;
         font-size: 2em;
@@ -275,6 +276,7 @@ body {
     
     .multiplier-box {
         align-items: center;
+        justify-content: center;
         display: flex;
         color: #ffffff;
         font-size: 2em;
