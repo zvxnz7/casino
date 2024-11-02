@@ -35,12 +35,13 @@ body {
 .bomb-container {
     margin-bottom: 20px;
 }
-.top-left{
-    padding: 20px;
-    position: relative;
+.top-left {
+    position: absolute;
+    top: 20px; /* Adjust this value to control the vertical distance from the top */
+    left: 20px; /* Adjust this value to control the horizontal distance from the left */
 }
+
 #backBtn {
-    align-items: start;
     padding: 10px 10px;
     font-size: 1.5rem;
     cursor: pointer;
@@ -52,10 +53,9 @@ body {
     width: 100px;
 }
 
-#backBtn:hover{
+#backBtn:hover {
     background-color: #444;
 }
-
 /* Money display styling */
 .money-display {
     font-size: 2rem;
