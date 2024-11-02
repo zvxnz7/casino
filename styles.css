@@ -35,7 +35,9 @@ body {
 .bomb-container {
     margin-bottom: 20px;
 }
-
+.topLeft{
+    align-items: start;
+}
 #backBtn {
     align-items: start;
     padding: 10px 10px;
