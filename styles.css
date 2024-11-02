@@ -257,10 +257,10 @@ body {
     .left-container {
         display: flex;
         flex-direction: column;
-        align-items: top;
+        align-items: flex-start;
         position: absolute;
         left: 0%;
-        top: 90%;
+        top: 0%; /* Change from 90% to 0% to move it to the top */
     }
     
     .money-display {
@@ -280,4 +280,4 @@ body {
         margin-bottom: 20px;
         transition: background-color 0.2s;
     }
-}
+
