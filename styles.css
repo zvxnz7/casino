@@ -257,7 +257,7 @@ body {
     .left-container {
         display: flex;
         flex-direction: column;
-        align-items: center;
+        align-items: top;
         position: absolute;
         left: 0%;
         top: 90%;
