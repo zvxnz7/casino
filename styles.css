@@ -36,11 +36,20 @@ body {
     margin-bottom: 20px;
 }
 
-.top-left {
-    font-size: 2rem;
-    margin-bottom: 40px;
+.topLeft {
+    padding: 10px 20px;
+    font-size: 1.5rem;
+    cursor: pointer;
+    background-color: #555;
     color: #f1f1f1;
-    text-align: center;
+    border: none;
+    border-radius: 8px;
+    transition: background-color 0.2s;
+    width: 200px;
+}
+
+.topLeft:hover{
+    background-color: #444;
 }
 
 /* Money display styling */
