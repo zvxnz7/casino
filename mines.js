@@ -86,9 +86,27 @@ async function updateMoney() {
 
 // Your other game functions...
 // Example: Update money display
-function updateMoneyDisplay() {
-    document.getElementById("moneyAmount").innerText = money;
+// Format money function to shorten large numbers
+function formatMoney(value) {
+    if (value >= 1e9) {
+        return (value / 1e9).toFixed(1).replace(/\.0$/, '') + "B";
+    } else if (value >= 1e6) {
+        return (value / 1e6).toFixed(1).replace(/\.0$/, '') + "M";
+    } else if (value >= 1e3) {
+        return (value / 1e3).toFixed(1).replace(/\.0$/, '') + "K";
+    } else {
+        return value.toString();
+    }
 }
+
+// Update money display to show shortened money format
+function updateMoneyDisplay() {
+    document.getElementById("moneyAmount").innerText = formatMoney(money);
+}
+
+// Example of how to call `updateMoneyDisplay` when the page loads
+window.onload = login;
+
 
 // Start the login process when the page loads
 window.onload = login;
