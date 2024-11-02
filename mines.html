@@ -13,27 +13,22 @@
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <div class = "top-left">
+    <div class="top-left">
         <button id="backBtn"><</button>
     </div>
     <div class="container">
-        <div class="bomb-container">
-            <h1>Bomb Game</h1>
+        <!-- Money and Multiplier Display Container -->
+        <div class="money-container">
+            <div class="money-display">
+                $<span id="moneyAmount">1000</span>
+            </div>
+            <div class="multiplier-box">
+                <span id="multiplier">1</span>x
+            </div>
         </div>
 
-        <!-- Left Container -->
-        <div class="left-container">
-            <div class="info-box">
-            <!-- Money Display -->
-                <div class="money-display">
-                    $<span id="moneyAmount">1000</span>
-                </div>
-    
-                <!-- Multiplier Display -->
-                <div class="multiplier-box">
-                    <span id="multiplier">1</span>x
-                </div>
-            </div>
+        <div class="bomb-container">
+            <h1>Bomb Game</h1>
         </div>
 
         <!-- Game Board -->
