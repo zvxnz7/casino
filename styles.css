@@ -274,14 +274,14 @@ body {
         top: -10%; /* Change from 90% to 0% to move it to the top */
     }
 
-    .info-box {
+/*     .info-box {
         flex-direction: column;
         display: flex;
-        background-color: #333; /* Background color for the box */
-        padding: 20px; /* Padding around the elements */
-        border-radius: 10px; /* Rounded corners */
-        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Optional shadow for a 3D effect */
-    }
+        background-color: #333;
+        padding: 20px;
+        border-radius: 10px; 
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); 
+    } */
     
     .money-display {
         display: flex;
