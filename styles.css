@@ -259,7 +259,7 @@ body {
         flex-direction: column;
         align-items: flex-start;
         position: absolute;
-        left: 0%;
+        left: 50%;
         top: 0%; /* Change from 90% to 0% to move it to the top */
     }
     
