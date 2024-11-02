@@ -259,8 +259,8 @@ body {
         flex-direction: column;
         align-items: flex-start;
         position: absolute;
-        left: 50%;
-        top: 0%; /* Change from 90% to 0% to move it to the top */
+        left: 33%;
+        top: -10%; /* Change from 90% to 0% to move it to the top */
     }
     
     .money-display {
