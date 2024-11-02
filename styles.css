@@ -228,6 +228,7 @@ body {
 
 .money-display {
     display: flex;
+    flex-direction: column;
     color: #a4ff9c;
     font-size: 4em;
     font-weight: bold;
