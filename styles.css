@@ -220,10 +220,17 @@ body {
 
 .info-box {
     display: flex;
-    background-color: #333; /* Background color for the box */
-    padding: 20px; /* Padding around the elements */
-    border-radius: 10px; /* Rounded corners */
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Optional shadow for a 3D effect */
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    position: absolute;
+    top: 20px; /* Adjust this value to control vertical position */
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: #333;
+    padding: 10px 20px;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
 }
 
 .money-display {
