@@ -36,7 +36,8 @@ body {
     margin-bottom: 20px;
 }
 .top-left{
-    align-items: start;
+    padding: 20px;
+    position: relative;
 }
 #backBtn {
     align-items: start;
