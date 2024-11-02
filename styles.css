@@ -36,7 +36,7 @@ body {
     margin-bottom: 20px;
 }
 
-.topLeft {
+#backBtn {
     padding: 10px 20px;
     font-size: 1.5rem;
     cursor: pointer;
@@ -48,7 +48,7 @@ body {
     width: 200px;
 }
 
-.topLeft:hover{
+#backBtn:hover{
     background-color: #444;
 }
 
