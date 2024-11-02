@@ -220,8 +220,6 @@ body {
 
 .info-box {
     display: flex;
-    align-items: center;
-    justify-content: space-around;
     background-color: #333; /* Background color for the box */
     padding: 20px; /* Padding around the elements */
     border-radius: 10px; /* Rounded corners */
