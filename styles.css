@@ -230,7 +230,8 @@ body {
 
 .money-display {
     display: flex;
-    flex-direction: column;
+    flex-direction: row; /* or just remove flex-direction entirely */
+    align-items: baseline; /* align items at the same baseline for a more natural look */
     color: #a4ff9c;
     font-size: 4em;
     font-weight: bold;
