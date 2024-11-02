@@ -89,15 +89,16 @@ async function updateMoney() {
 // Format money function to shorten large numbers
 function formatMoney(value) {
     if (value >= 1e9) {
-        return (value / 1e9).toFixed(1).replace(/\.0$/, '') + "B";
+        return (value / 1e9).toFixed(2).replace(/\.00$/, '') + "B";
     } else if (value >= 1e6) {
-        return (value / 1e6).toFixed(1).replace(/\.0$/, '') + "M";
+        return (value / 1e6).toFixed(2).replace(/\.00$/, '') + "M";
     } else if (value >= 1e3) {
-        return (value / 1e3).toFixed(1).replace(/\.0$/, '') + "K";
+        return (value / 1e3).toFixed(2).replace(/\.00$/, '') + "K";
     } else {
-        return value.toString();
+        return value.toFixed(2); // Show 2 decimals even for values less than 1,000
     }
 }
+
 
 // Update money display to show shortened money format
 function updateMoneyDisplay() {
