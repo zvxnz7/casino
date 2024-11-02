@@ -140,6 +140,7 @@ body {
 }
 
 #betAmount {
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
     padding: 10px;
     font-size: 1.5rem;
     width: 200px;
@@ -158,6 +159,7 @@ body {
 }
 
 #betButton {
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
     padding: 10px 20px;
     font-size: 1.5rem;
     cursor: pointer;
@@ -198,6 +200,7 @@ body {
 }
 
 .login-container button {
+    cursor: pointer;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
     padding: 10px;
     width: 100%;
