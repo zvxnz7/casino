@@ -37,7 +37,8 @@ body {
 }
 
 #backBtn {
-    padding: 10px 20px;
+    align-items: start;
+    padding: 10px 10px;
     font-size: 1.5rem;
     cursor: pointer;
     background-color: #555;
@@ -45,7 +46,7 @@ body {
     border: none;
     border-radius: 8px;
     transition: background-color 0.2s;
-    width: 200px;
+    width: 100px;
 }
 
 #backBtn:hover{
