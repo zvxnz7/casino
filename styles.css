@@ -213,8 +213,8 @@ body {
 .info-box {
     display: flex;
     flex-direction: column;
-/*     align-items: center;
-    justify-content: center; */
+    align-items: center;
+    justify-content: center;
     position: absolute;
     top: 20px; /* Adjust this value to control vertical position */
     left: 50%;
@@ -223,6 +223,9 @@ body {
     padding: 10px 20px;
     border-radius: 10px;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    left: -50%;
+    top: 50%;
+    transform: translateY(-50%);
 }
 
 .money-display {
