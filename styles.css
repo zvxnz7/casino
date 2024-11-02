@@ -211,7 +211,7 @@ body {
 /* New styles for the left container, money display, and multiplier box */
 .left-container {
     display: flex;
-    flex-direction: column;
+    flex-direction: row;
     align-items: center;
     position: absolute;
     left: -50%;
@@ -256,7 +256,7 @@ body {
 
     .left-container {
         display: flex;
-        flex-direction: column;
+        flex-direction: row;
         align-items: flex-start;
         position: absolute;
         left: 33%;
