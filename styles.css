@@ -36,6 +36,13 @@ body {
     margin-bottom: 20px;
 }
 
+.top-left {
+    font-size: 2rem;
+    margin-bottom: 40px;
+    color: #f1f1f1;
+    text-align: center;
+}
+
 /* Money display styling */
 .money-display {
     font-size: 2rem;
