@@ -269,6 +269,7 @@ body {
     }
 
     .info-box {
+        flex-direction: column;
         display: flex;
         background-color: #333; /* Background color for the box */
         padding: 20px; /* Padding around the elements */
