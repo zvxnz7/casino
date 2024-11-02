@@ -8,7 +8,7 @@ const firebaseConfig = {
     appId: "1:824259346500:web:1ace23689863864cc23c11",
     measurementId: "G-LHMDCMRY9E"
 };
-
+const backBTN = document.getElementById('backBtn');
 const gameBoard = document.getElementById('gameBoard');
 const cells = document.querySelectorAll('[data-cell]');
 const betButton = document.getElementById('betButton');
@@ -28,7 +28,8 @@ let time = 0;
 let betAmount = 0;
 let gameStarted = false;
 
-
+backBTN.addEventListener('click', () => {
+    window.location.href = 'games.html';
 // Function to set username and retrieve user's money from Firestore
 async function login() {
     money = await getMoney(); // Retrieve money from Firestore
