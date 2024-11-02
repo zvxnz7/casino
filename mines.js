@@ -30,6 +30,7 @@ let gameStarted = false;
 
 backBTN.addEventListener('click', () => {
     window.location.href = 'games.html';
+});
 // Function to set username and retrieve user's money from Firestore
 async function login() {
     money = await getMoney(); // Retrieve money from Firestore
