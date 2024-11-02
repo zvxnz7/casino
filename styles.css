@@ -220,7 +220,7 @@ body {
     left: 50%;
     transform: translateX(-50%);
     background-color: #333;
-    padding: 5px 10px;
+    padding: 7px 15px;
     border-radius: 10px;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
     left: -50%;
@@ -260,23 +260,13 @@ body {
         font-size: 1.5rem; /* Adjust font size for smaller cells */
     }
 
-    .left-container {
-        display: flex;
-        flex-direction: column;
+
+    .info-box {
         align-items: flex-start;
         position: absolute;
         left: 33%;
         top: -10%; /* Change from 90% to 0% to move it to the top */
     }
-
-/*     .info-box {
-        flex-direction: column;
-        display: flex;
-        background-color: #333;
-        padding: 20px;
-        border-radius: 10px; 
-        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); 
-    } */
     
     .money-display {
         display: flex;
