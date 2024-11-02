@@ -6,12 +6,6 @@
     font-family: Arial, sans-serif;
 }
 
-[data-cell] {
-    background-position: center;
-    background-repeat: no-repeat;
-    background-size: 50%;
-}
-
 html, body {
     overflow: hidden;
     height: 100%;
@@ -32,10 +26,6 @@ body {
     position: relative;
 }
 
-.bomb-container {
-    margin-bottom: 20px;
-}
-
 .top-left {
     position: absolute;
     top: 20px;
@@ -51,7 +41,6 @@ body {
     color: #f1f1f1;
     border: none;
     border-radius: 8px;
-    transition: background-color 0.2s;
     width: 50px;
     height: 50px;
 }
@@ -99,12 +88,10 @@ body {
     margin-top: 100px; /* Adjust this value to control distance from the top */
 }
 
-/* Game board styling for PC */
 .game-board {
     display: grid;
     grid-template-columns: repeat(5, 100px);
     grid-gap: 20px;
-    justify-content: center;
 }
 
 .cell {
@@ -126,49 +113,34 @@ body {
     background-color: #444;
 }
 
-.cell.gameover {
-    transform: scale(1);
-}
-
 .cell.win {
     background-color: #c4fdb2;
-    transition: background-color 5s;
 }
 
 .cell.red {
     background-color: #fa6e6e;
-    transition: background-color 5s;
-}
-
-.cell.red:hover {
-    transform: scale(1);
 }
 
 .cell.blue {
     background-color: #6e83fa;
-    transition: background-color 5s;
 }
 
-.cell.blue:hover {
-    transform: scale(1);
-}
-
-/* Input and button styling */
+/* Bet input and button container styling */
 .input-container {
     display: flex;
     flex-direction: column;
     align-items: center;
+    margin-top: 20px;
 }
 
 #betAmount {
     padding: 10px;
     font-size: 1.5rem;
     width: 200px;
-    border: none;
     background-color: #555;
     color: #f1f1f1;
+    border: none;
     border-radius: 8px;
-    box-sizing: border-box;
     margin-bottom: 10px;
     text-align: center;
 }
@@ -182,7 +154,6 @@ body {
     border: none;
     border-radius: 8px;
     width: 200px;
-    transition: background-color 0.2s;
 }
 
 #betButton:hover,
@@ -205,8 +176,6 @@ body {
 
     .money-container {
         top: 10px;
-        left: 50%;
-        transform: translateX(-50%);
         padding: 5px 10px;
     }
 
