@@ -141,6 +141,8 @@ function updateMltplierDisplay() {
 
 betButton.addEventListener("click", function () {
     if (!gameStarted) {
+        getMoney();
+        updateMoneyDisplay();
         betAmount = parseInt(document.getElementById("betAmount").value);
 
         if (!isNaN(betAmount) && betAmount > 0 && betAmount <= money) {
