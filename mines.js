@@ -139,7 +139,7 @@ function updateMltplierDisplay() {
     document.getElementById("multiplier").innerText = multiplier;
 }
 
-betButton.addEventListener("click", function () {
+betButton.addEventListener("click", async function () {
     if (!gameStarted) {
         money = await getMoney();
         updateMoneyDisplay();
