@@ -141,7 +141,7 @@ function updateMltplierDisplay() {
 
 betButton.addEventListener("click", function () {
     if (!gameStarted) {
-        await getMoney();
+        money = await getMoney();
         updateMoneyDisplay();
         betAmount = parseInt(document.getElementById("betAmount").value);
 
@@ -156,7 +156,7 @@ betButton.addEventListener("click", function () {
         }
     } else {
         revealBombs();
-        await getMoney();
+        money = await getMoney();
         const payout = betAmount * multiplier;
         money += payout;
         await updateMoney();
