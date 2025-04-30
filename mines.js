@@ -156,9 +156,10 @@ betButton.addEventListener("click", function () {
         }
     } else {
         revealBombs();
-        updateMoney();
+        getMoney();
         const payout = betAmount * multiplier;
         money += payout;
+        updateMoney();
         updateMoneyDisplay();
         gameStarted = false;
         betButton.textContent = 'Place bets';
