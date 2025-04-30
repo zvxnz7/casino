@@ -141,14 +141,14 @@ function updateMltplierDisplay() {
 
 betButton.addEventListener("click", function () {
     if (!gameStarted) {
-        getMoney();
+        await getMoney();
         updateMoneyDisplay();
         betAmount = parseInt(document.getElementById("betAmount").value);
 
         if (!isNaN(betAmount) && betAmount > 0 && betAmount <= money) {
             money -= betAmount;
             updateMoneyDisplay();
-            updateMoney();
+            await updateMoney();
             generateArray();
             betButton.textContent = 'Payout';
         } else {
@@ -156,10 +156,10 @@ betButton.addEventListener("click", function () {
         }
     } else {
         revealBombs();
-        getMoney();
+        await getMoney();
         const payout = betAmount * multiplier;
         money += payout;
-        updateMoney();
+        await updateMoney();
         updateMoneyDisplay();
         gameStarted = false;
         betButton.textContent = 'Place bets';
