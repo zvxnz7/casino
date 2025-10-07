@@ -11,7 +11,7 @@
     <header class="header">
       <div class="title">
         <h1>Casino Plinko</h1>
-        <span class="sub">Physics • Binomial odds • RTP-normalized</span>
+        <span class="sub">Physics • RTP-normalized payouts</span>
       </div>
       <div class="balance">
         <span>Balance</span>
@@ -66,7 +66,7 @@
           </div>
 
           <p class="hint">
-            Peg hits are 50/50; payouts are shaped by risk and normalized to RTP. Physics controls the path — EV matches RTP.
+            Peg hits are 50/50; physics is softened. Slot dividers prevent rolling into a different multiplier.
           </p>
           <p id="msg" class="msg" role="alert" aria-live="polite"></p>
         </div>
@@ -79,7 +79,7 @@
     </section>
 
     <footer class="footer">
-      <small>RNG: <code>crypto.getRandomValues</code> for unbiased nudges.</small>
+      <small>RNG nudges via <code>crypto.getRandomValues</code>.</small>
     </footer>
   </main>
 
