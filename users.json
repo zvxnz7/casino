@@ -1,6 +1,6 @@
 {
     "users": [
-        { "username": "zvxnz", "password": "Zygiszu123"},
+        { "username": "zvxnz", "password": "Zygiszu"},
         { "username": "karek", "password": "Pass69"},
         { "username": "wielu", "password": "wielugeju11"},
         { "username": "rybson", "password": "fishy96"},
@@ -10,3 +10,4 @@
         { "username": "user2", "password": "pass2"}
     ]
 }
+
