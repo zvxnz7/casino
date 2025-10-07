@@ -83,92 +83,15 @@
     </footer>
   </main>
 
-  <!-- Firebase SDKs (load same as your other pages) -->
+  <!-- Firebase SDKs -->
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
 
-  <!-- Your Firebase config & init (copied from your Mines/app.js) -->
-  <script>
-    const firebaseConfig = {
-      apiKey: "AIzaSyCbSyocu6e8t7UTLJ4VBwULgBxt38ggw1k",
-      authDomain: "casino777-7.firebaseapp.com",
-      projectId: "casino777-7",
-      storageBucket: "casino777-7.appspot.com",
-      messagingSenderId: "824259346500",
-      appId: "1:824259346500:web:1ace23689863864cc23c11",
-      measurementId: "G-LHMDCMRY9E"
-    };
-    firebase.initializeApp(firebaseConfig);
-  </script>
+  <!-- Your existing initializer (MUST come before plinko.js) -->
+  <script src="app.js"></script>
 
-  <!-- MONEY adapter: maps your Firestore balance to the interface the game uses -->
-  <script>
-    (function(){
-      const db = firebase.firestore();
-      const USERNAME = localStorage.getItem('username');
-      let userDocRef = null;
-
-      async function getUserDocRef(){
-        if (userDocRef) return userDocRef;
-        const snap = await db.collection('users').where('username','==',USERNAME).limit(1).get();
-        if (snap.empty) throw new Error('Username not found.');
-        userDocRef = snap.docs[0].ref;
-        return userDocRef;
-      }
-      function r2(n){ return Math.round(n*100)/100; }
-
-      async function readBalance(){
-        const ref = await getUserDocRef();
-        const doc = await ref.get();
-        const data = doc.data()||{};
-        const bal = Number(data.money ?? 0);
-        if (!Number.isFinite(bal)) throw new Error('Invalid balance.');
-        return bal;
-      }
-
-      async function debit(amount, meta={}){
-        amount = Number(amount);
-        if (!(amount>0)) throw new Error('Invalid bet amount.');
-        const ref = await getUserDocRef();
-        await db.runTransaction(async tx=>{
-          const snap = await tx.get(ref);
-          const cur = Number((snap.data()||{}).money ?? 0);
-          if (!Number.isFinite(cur)) throw new Error('Invalid balance.');
-          if (cur < amount) throw new Error('Insufficient balance.');
-          tx.update(ref, { money: r2(cur - amount) });
-        });
-      }
-
-      async function credit(amount, meta={}){
-        amount = Number(amount);
-        if (!(amount>=0)) throw new Error('Invalid payout.');
-        const ref = await getUserDocRef();
-        await db.runTransaction(async tx=>{
-          const snap = await tx.get(ref);
-          const cur = Number((snap.data()||{}).money ?? 0);
-          if (!Number.isFinite(cur)) throw new Error('Invalid balance.');
-          tx.update(ref, { money: r2(cur + amount) });
-        });
-      }
-
-      window.MONEY = {
-        async getBalance(){ return readBalance(); },
-        async debit(a,m){ return debit(a,m); },
-        async credit(a,m){ return credit(a,m); }
-      };
-    })();
-  </script>
-
-<!-- 1️⃣ Load Firebase SDKs -->
-<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
-<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
-<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
-
-<!-- 2️⃣ Load your existing Firebase initialization (app.js) -->
-<script src="app.js"></script>
-
-<!-- 3️⃣ Load your Plinko game logic -->
-<script src="plinko.js"></script>
-
+  <!-- Plinko game -->
+  <script src="plinko.js"></script>
 </body>
 </html>
