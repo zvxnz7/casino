@@ -13,7 +13,7 @@
     if (drop) drop.disabled = true;
     if (auto) auto.disabled = true;
     if (msg) { msg.textContent = reason; msg.style.color = '#ff6b6b'; }
-    // provide stubs to avoid undefined errors
+    // stubs to avoid undefined errors
     window.MONEY = {
       async getBalance(){ throw new Error(reason); },
       async debit(){ throw new Error(reason); },
@@ -104,22 +104,33 @@ const recentEl = document.getElementById('recent');
 const msgEl = document.getElementById('msg');
 const chips = [...document.querySelectorAll('.chip')];
 
+// ===== Board / Physics Config (softened) =====
 let rows = Number(rowsEl.value);
 let spacing = 42;
 let pegRadius = 5;
 let ballRadius = 6;
-let gravity = 0.28;       // px/frame^2
-let restitution = 0.45;   // bounce damping
-let friction = 0.995;     // air drag
+let gravity = 0.30;          // slightly stronger pull
+let restitution = 0.28;      // softer peg bounces
+let friction = 0.985;        // more air drag
+const floorFriction = 0.90;  // grippy floor
+const dividerRestitution = 0.15; // very soft rail bounce
 let wall = { left: 6, right: 6, top: 6, bottom: 26 };
 
+// Catch area / slot dividers
+let catchTop = 0;             // y-start of catch area
+let slotHalfGap = 0;          // half distance between slot centers
+let dividers = [];            // vertical rails
+const dividerHalfW = 2;       // rail half-width (px)
+const catchDepthPx = 90;      // catch area height
+
 let pegs = [];
-let slots = [];
+let slots = [];               // x positions for bins (rows+1)
 let balls = [];
 let multipliers = [];
 let busy = false;
 let autoplay = 0;
 
+// ===== RNG =====
 function rngBool(){
   const u = new Uint32Array(1);
   crypto.getRandomValues(u);
@@ -141,9 +152,19 @@ function setupBoard(){
     }
   }
 
+  // landing slots
   const count = rows + 1;
   const offsetX = (canvas.width - count * spacing) / 2 + spacing / 2;
   slots = Array.from({length: count}, (_,i)=> offsetX + i*spacing);
+
+  // catch area and rails between slots
+  catchTop = canvas.height - wall.bottom - catchDepthPx;
+  slotHalfGap = spacing / 2;
+  dividers = [];
+  for (let i = 0; i < slots.length - 1; i++) {
+    const mid = (slots[i] + slots[i + 1]) / 2;
+    dividers.push({ x: mid, y0: catchTop, y1: canvas.height - wall.bottom });
+  }
 
   buildLegend();
 }
@@ -225,13 +246,16 @@ function moneyReady(){
 
 /* ---------- Physics ---------- */
 function spawnBall(bet){
-  balls.push({ x: canvas.width/2, y: 30, vx: 0, vy: 0, r: 6, bet, settled: false });
+  balls.push({ x: canvas.width/2, y: 30, vx: 0, vy: 0, r: ballRadius, bet, settled: false });
 }
+
 function updateBall(b){
+  // gravity & drag
   b.vy += gravity;
   b.vx *= friction;
   b.vy *= friction;
 
+  // integrate
   b.x += b.vx;
   b.y += b.vy;
 
@@ -240,7 +264,7 @@ function updateBall(b){
   if (b.x + b.r > canvas.width - wall.right){ b.x = canvas.width - wall.right - b.r; b.vx *= -restitution; }
   if (b.y - b.r < wall.top){ b.y = wall.top + b.r; b.vy *= -restitution; }
 
-  // peg collisions
+  // peg collisions (limit checks to nearby vertical window for perf)
   const pegWindow = spacing + 8;
   for (let p of pegs){
     if (Math.abs(b.y - p.y) > pegWindow) continue;
@@ -252,29 +276,64 @@ function updateBall(b){
       const vn = b.vx*nx + b.vy*ny;
       b.vx = b.vx - (1+restitution)*vn*nx;
       b.vy = b.vy - (1+restitution)*vn*ny;
-      b.vx += rngBool() ? 0.65 : -0.65; // unbiased nudge to break symmetry
+
+      // slight unbiased nudge to break symmetry
+      b.vx += rngBool() ? 0.55 : -0.55;
     }
+  }
+
+  // --- Slot box dividers (only active in catch area) ---
+  if (b.y + b.r > catchTop) {
+    for (const d of dividers) {
+      // AABB vertical wall range check
+      if (b.y + b.r < d.y0 || b.y - b.r > d.y1) continue;
+      const dx = b.x - d.x;
+      const overlap = (dividerHalfW + b.r) - Math.abs(dx);
+      if (overlap > 0) {
+        const side = dx < 0 ? -1 : 1; // -1 means left side of divider
+        b.x += side * overlap;
+        b.vx = -b.vx * dividerRestitution;
+        // extra damping in catch zone to settle faster
+        b.vx *= 0.9;
+        b.vy *= 0.9;
+      }
+    }
+
+    // gentle spring toward the center of the nearest slot (doesn't cross rails)
+    const nearest = slots.reduce((best, x) => {
+      const d = Math.abs(x - b.x);
+      return d < best.d ? { d, x } : best;
+    }, { d: Infinity, x: slots[0] });
+    const k = 0.02;
+    b.vx += k * (nearest.x - b.x);
   }
 
   // floor & settle
   const floorY = canvas.height - wall.bottom;
   if (b.y + b.r >= floorY){
     b.y = floorY - b.r;
-    b.vx *= 0.94; b.vy = 0;
+    b.vx *= floorFriction;
+    b.vy = 0;
 
-    if (Math.abs(b.vx) < 0.08){
-      // snap to nearest slot
-      let nearest = 0, best = Infinity;
-      for (let i=0;i<slots.length;i++){
-        const d = Math.abs(slots[i] - b.x);
-        if (d < best){ best = d; nearest = i; }
-      }
-      b.x = slots[nearest];
+    // stricter settle thresholds inside catch area
+    const nearCenterThreshold = 0.06;                 // velocity threshold
+    const snapThresholdPx = slotHalfGap * 0.55;       // must be close to slot center
+
+    // find nearest slot
+    let nearestIdx = 0, best = Infinity;
+    for (let i = 0; i < slots.length; i++) {
+      const d = Math.abs(slots[i] - b.x);
+      if (d < best) { best = d; nearestIdx = i; }
+    }
+
+    if (Math.abs(b.vx) < nearCenterThreshold && best < snapThresholdPx) {
+      b.x = slots[nearestIdx];       // snap into slot center
       b.settled = true;
-      onBallSettled(b, nearest);
+      onBallSettled(b, nearestIdx);
     }
   }
 }
+
 function renderBoard(){
   ctx.clearRect(0,0,canvas.width,canvas.height);
 
@@ -291,6 +350,12 @@ function renderBoard(){
   ctx.fillStyle = '#7c5cff';
   slots.forEach(x => ctx.fillRect(x-1, canvas.height-wall.bottom, 2, wall.bottom));
 
+  // vertical divider rails in catch area
+  ctx.fillStyle = 'rgba(124,92,255,0.85)';
+  dividers.forEach(d => {
+    ctx.fillRect(d.x - dividerHalfW, d.y0, dividerHalfW * 2, d.y1 - d.y0);
+  });
+
   // pegs
   ctx.fillStyle = '#d8dcff';
   pegs.forEach(p => { ctx.beginPath(); ctx.arc(p.x,p.y,pegRadius,0,Math.PI*2); ctx.fill(); });
@@ -299,6 +364,7 @@ function renderBoard(){
   ctx.fillStyle = '#ff6b6b';
   balls.forEach(b => { ctx.beginPath(); ctx.arc(b.x,b.y,b.r,0,Math.PI*2); ctx.fill(); });
 }
+
 function loop(){
   balls.forEach(updateBall);
   balls = balls.filter(b => !b.settled);
@@ -363,13 +429,11 @@ rtpEl.addEventListener('input', () => { rtpValEl.textContent = `${rtpEl.value}%`
 
 /* ---------- Init ---------- */
 (async function init(){
-  // if MONEY adapter had to disable UI, stop here
   if (!moneyReady()){
-    console.warn('MONEY not ready; UI disabled.');
+    console.warn('MONEY not ready; UI disabled until login/SDK present.');
   }
   resizeCanvas();
   buildLegend();
   if (moneyReady()) await refreshBalance();
   loop();
 })();
-
