@@ -18,6 +18,7 @@ body{
 .title .sub{color:var(--muted); font-size:.9rem}
 .balance{display:flex; gap:10px; align-items:baseline; background:var(--panel); padding:10px 14px; border-radius:14px; box-shadow:var(--shadow); border:1px solid var(--border)}
 .balance span{color:var(--muted)}
+.balance strong{font-weight:700}
 
 .game{display:grid; grid-template-columns: minmax(520px,1fr) 340px; gap:18px; align-items:flex-start}
 
