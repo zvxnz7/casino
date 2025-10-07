@@ -1,26 +1,88 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Plinko Game</title>
-  <style>
-    body {
-      margin: 0;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
-      background: #222;
-    }
-    canvas {
-      background: #fff;
-      box-shadow: 0 0 10px rgba(0,0,0,0.5);
-    }
-  </style>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
+  <title>Casino Plinko</title>
+  <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
-  <canvas id="plinko" width="400" height="600"></canvas>
+  <main class="wrap">
+    <header class="header">
+      <div class="title">
+        <h1>Casino Plinko</h1>
+        <span class="sub">Physics • Fair 50/50 bounces</span>
+      </div>
+      <div class="balance">
+        <span>Balance</span>
+        <strong id="balance">—</strong>
+      </div>
+    </header>
+
+    <section class="game">
+      <div class="left">
+        <canvas id="plinko" width="560" height="760" aria-label="Plinko board"></canvas>
+        <div id="legend" class="legend"></div>
+      </div>
+
+      <div class="right">
+        <div class="panel">
+          <label class="row">
+            <span>Bet</span>
+            <div class="input-group">
+              <input id="bet" type="number" min="0.01" step="0.01" value="1.00" />
+              <button class="chip" data-plus="0.5">+0.5</button>
+              <button class="chip" data-plus="1">+1</button>
+              <button class="chip" data-plus="5">+5</button>
+            </div>
+          </label>
+
+          <label class="row">
+            <span>Rows</span>
+            <input id="rows" type="range" min="8" max="16" step="1" value="12" />
+            <span class="range-val"><strong id="rowsVal">12</strong></span>
+          </label>
+
+          <label class="row">
+            <span>Risk</span>
+            <select id="risk">
+              <option value="low">Low</option>
+              <option value="medium" selected>Medium</option>
+              <option value="high">High</option>
+            </select>
+          </label>
+
+          <label class="row">
+            <span>RTP</span>
+            <input id="rtp" type="range" min="90" max="99" step="1" value="97" />
+            <span class="range-val"><strong id="rtpVal">97%</strong></span>
+          </label>
+
+          <div class="divider"></div>
+
+          <div class="buttons">
+            <button id="drop" class="primary">Drop</button>
+            <button id="auto" class="ghost">Auto x10</button>
+          </div>
+
+          <p class="hint">
+            Each peg hit is a 50/50 decision. Payouts are shaped by risk and normalized to RTP; physics controls the path, not the payouts.
+          </p>
+          <p id="msg" class="msg" role="alert" aria-live="polite"></p>
+        </div>
+
+        <div class="recent">
+          <h3>Recent Results</h3>
+          <ul id="recent"></ul>
+        </div>
+      </div>
+    </section>
+
+    <footer class="footer">
+      <small>RNG: <code>crypto.getRandomValues</code> for nudge randomness.</small>
+    </footer>
+  </main>
+
   <script src="plinko.js"></script>
 </body>
 </html>
