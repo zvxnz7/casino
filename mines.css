@@ -1,0 +1,72 @@
+:root{
+  --bg:#0f1221; --panel:#161a36; --panel2:#1a1f44; --text:#e7e9ff; --muted:#9aa0c3;
+  --ok:#24d3b5; --bad:#ff6b6b; --border:rgba(255,255,255,.08);
+  --shadow:0 8px 24px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,.05);
+}
+
+*{box-sizing:border-box}
+html,body{height:100%}
+body{
+  margin:0; font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Inter,Arial;
+  color:var(--text);
+  background: radial-gradient(1200px 800px at 30% -10%, #242c71 0%, #0f1221 55%, #0b0d1a 100%);
+}
+
+.wrap{max-width:900px; margin:0 auto; padding:14px}
+
+.back{
+  position:fixed; left:12px; top:12px; width:42px; height:42px; border-radius:10px;
+  border:1px solid var(--border); background:#222844; color:#fff; font-weight:700; cursor:pointer;
+  box-shadow:var(--shadow);
+}
+
+.topbar{display:flex; justify-content:space-between; align-items:center; margin:8px 0 14px}
+.topbar h1{margin:0; font-size:1.2rem}
+.info{display:flex; gap:14px; align-items:baseline}
+.money{font-size:1.6rem; color:#a4ff9c}
+.mult{font-size:1.6rem; color:#fff}
+
+.board-wrap{
+  background:linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.02));
+  border:1px solid var(--border); border-radius:16px; padding:14px; box-shadow:var(--shadow)
+}
+
+.board{
+  --cell:clamp(44px, 12vw, 100px);
+  --gap:clamp(8px, 2vw, 16px);
+  display:grid; grid-template-columns:repeat(5, var(--cell)); gap:var(--gap);
+  place-content:center; margin:0 auto;
+}
+
+.cell{
+  width:var(--cell); height:var(--cell);
+  background:#1b2046; border:1px solid var(--border); border-radius:10px;
+  display:flex; align-items:center; justify-content:center;
+  background-position:center; background-repeat:no-repeat; background-size:62%;
+  box-shadow:var(--shadow); transition:transform .15s ease, background-color .3s ease;
+  cursor:pointer;
+}
+.cell:hover{ transform:translateY(-2px); }
+.cell.win{ background-color:#1a3a2f; }
+.cell.red{ background-color:#3a1a1a; }
+.cell.blue{ background-color:#1a2542; }
+.cell.gameover{ transform:none; }
+
+.controls{ margin:14px auto 4px; display:flex; gap:10px; justify-content:center; align-items:center }
+#betAmount{
+  width:200px; padding:10px 12px; border-radius:12px; background:#1b2351; color:#fff;
+  border:1px solid var(--border); outline:none; text-align:center; font-size:1rem;
+}
+#betButton{
+  padding:10px 14px; border-radius:12px; background:#1b2351; color:#fff; border:1px solid var(--border);
+  cursor:pointer; font-weight:700;
+}
+#betButton:hover{ filter:brightness(1.1); }
+
+.msg{ text-align:center; min-height:1.2em; color:var(--bad); margin-top:6px }
+
+/* mobile stack tweaks */
+@media (max-width:640px){
+  .wrap{padding:10px}
+  .topbar{margin:4px 0 10px}
+}
