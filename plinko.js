@@ -13,7 +13,6 @@
     if (drop) drop.disabled = true;
     if (auto) auto.disabled = true;
     if (msg) { msg.textContent = reason; msg.style.color = '#ff6b6b'; }
-    // stubs to avoid undefined errors
     window.MONEY = {
       async getBalance(){ throw new Error(reason); },
       async debit(){ throw new Error(reason); },
@@ -104,9 +103,17 @@ const recentEl = document.getElementById('recent');
 const msgEl = document.getElementById('msg');
 const chips = [...document.querySelectorAll('.chip')];
 
-// ===== Board / Physics Config (softened) =====
+/* ---------- Board / Physics Config (softened) ---------- */
 let rows = Number(rowsEl.value);
-let spacing = 42;
+
+// dynamic spacing + margins
+let spacing = 42;            // will be recomputed per board size
+const MIN_SPACING = 34;      // don’t let pegs get too tight
+const MAX_SPACING = 56;      // avoid huge gaps
+const SIDE_PAD = 24;         // horizontal padding inside canvas
+const TOP_Y = 90;            // first peg row Y
+const EXTRA_BOTTOM_SPACE = 20; // visual gap above catch area
+
 let pegRadius = 5;
 let ballRadius = 6;
 let gravity = 0.30;          // slightly stronger pull
@@ -121,7 +128,7 @@ let catchTop = 0;             // y-start of catch area
 let slotHalfGap = 0;          // half distance between slot centers
 let dividers = [];            // vertical rails
 const dividerHalfW = 2;       // rail half-width (px)
-const catchDepthPx = 90;      // catch area height
+let catchDepthPx = 90;        // catch area height (will clamp dynamically)
 
 let pegs = [];
 let slots = [];               // x positions for bins (rows+1)
@@ -137,24 +144,52 @@ function rngBool(){
   return (u[0] & 1) === 1;
 }
 
+/* ---------- Spacing computation (fixes “rows too tight”) ---------- */
+function computeSpacing(){
+  const nRows = Number(rowsEl.value);
+  const nCols = nRows + 1; // last row peg count = nRows+1, and slots = nRows+1
+
+  // horizontal spacing considering side pads
+  const usableW = canvas.width - 2*SIDE_PAD;
+  const sX = usableW / nCols;
+
+  // vertical spacing considering catch area & bottom wall
+  // leave room for catch area + extra gap
+  const minCatch = 80; // minimum catch area height
+  const maxCatch = 120;
+  // propose catchDepth relative to canvas size
+  catchDepthPx = Math.max(minCatch, Math.min(maxCatch, Math.floor(canvas.height * 0.14)));
+
+  const usableH = canvas.height - TOP_Y - (wall.bottom + catchDepthPx + EXTRA_BOTTOM_SPACE);
+  const sY = usableH / nRows;
+
+  // pick the limiting spacing, clamp to range
+  const s = Math.max(MIN_SPACING, Math.min(MAX_SPACING, Math.floor(Math.min(sX, sY))));
+  spacing = s;
+}
+
 /* ---------- Layout ---------- */
 function setupBoard(){
+  computeSpacing();
+
   rows = Number(rowsEl.value);
   pegs.length = 0;
-  const firstY = 90;
 
+  // build peg triangle
   for (let r = 0; r < rows; r++){
     const count = r + 1;
-    const offsetX = (canvas.width - count * spacing) / 2 + spacing / 2;
-    const y = firstY + r * spacing;
+    const boardW = canvas.width - 2*SIDE_PAD;
+    const offsetX = SIDE_PAD + (boardW - count * spacing) / 2 + spacing / 2;
+    const y = TOP_Y + r * spacing;
     for (let i = 0; i < count; i++){
       pegs.push({ x: offsetX + i * spacing, y });
     }
   }
 
-  // landing slots
+  // landing slots (centers) – exactly rows+1, evenly spaced under the last row footprint
   const count = rows + 1;
-  const offsetX = (canvas.width - count * spacing) / 2 + spacing / 2;
+  const boardW = canvas.width - 2*SIDE_PAD;
+  const offsetX = SIDE_PAD + (boardW - count * spacing) / 2 + spacing / 2;
   slots = Array.from({length: count}, (_,i)=> offsetX + i*spacing);
 
   // catch area and rails between slots
@@ -183,7 +218,7 @@ window.addEventListener('resize', () => {
   resizeRAF = requestAnimationFrame(resizeCanvas);
 });
 
-/* ---------- RTP / Multipliers ---------- */
+/* ---------- RTP / Multipliers (legend always matches slots L→R) ---------- */
 function nCk(n,k){
   if(k<0||k>n) return 0;
   if(k===0||k===n) return 1;
@@ -200,6 +235,7 @@ function generateMultipliers(n, risk, rtpPct){
   const rtp = rtpPct / 100;
   const shapeEV = shape.reduce((s,sk,k)=> s + probs[k]*sk, 0);
   const c = rtp / shapeEV;
+  // multipliers index k (0..n) correspond to slots left→right; aligned with `slots`
   return shape.map(sk => +(Math.max(0.01, c*sk).toFixed(sk*c>=10 ? 2 : 3)));
 }
 function buildLegend(){
@@ -244,7 +280,7 @@ function moneyReady(){
     && typeof window.MONEY.credit==='function';
 }
 
-/* ---------- Physics ---------- */
+/* ---------- Physics (softened) ---------- */
 function spawnBall(bet){
   balls.push({ x: canvas.width/2, y: 30, vx: 0, vy: 0, r: ballRadius, bet, settled: false });
 }
@@ -317,7 +353,7 @@ function updateBall(b){
 
     // stricter settle thresholds inside catch area
     const nearCenterThreshold = 0.06;                 // velocity threshold
-    const snapThresholdPx = slotHalfGap * 0.55;       // must be close to slot center
+    const snapThresholdPx = (spacing / 2) * 0.55;     // must be close to slot center
 
     // find nearest slot
     let nearestIdx = 0, best = Infinity;
@@ -346,11 +382,11 @@ function renderBoard(){
   ctx.fillRect(0,canvas.height-wall.bottom,canvas.width,wall.bottom);
   ctx.globalAlpha = 1;
 
-  // slot markers
+  // slot markers (aligned to slots)
   ctx.fillStyle = '#7c5cff';
   slots.forEach(x => ctx.fillRect(x-1, canvas.height-wall.bottom, 2, wall.bottom));
 
-  // vertical divider rails in catch area
+  // vertical divider rails in catch area (boxes)
   ctx.fillStyle = 'rgba(124,92,255,0.85)';
   dividers.forEach(d => {
     ctx.fillRect(d.x - dividerHalfW, d.y0, dividerHalfW * 2, d.y1 - d.y0);
@@ -403,7 +439,7 @@ async function startRound(){
   try{
     busy = true;
     await window.MONEY.debit(bet, { game:'plinko', type:'bet', bet, rows: Number(rowsEl.value), risk: riskEl.value });
-    setupBoard();
+    setupBoard();              // recompute geometry with current rows
     spawnBall(bet);
     await refreshBalance();
   }catch(e){
@@ -430,9 +466,16 @@ rtpEl.addEventListener('input', () => { rtpValEl.textContent = `${rtpEl.value}%`
 /* ---------- Init ---------- */
 (async function init(){
   if (!moneyReady()){
-    console.warn('MONEY not ready; UI disabled until login/SDK present.');
+    console.warn('MONEY not ready; UI may be disabled until login/SDK present.');
   }
-  resizeCanvas();
+  // initial responsive sizing & layout
+  const container = (document.querySelector('.left')?.clientWidth || 560) - 28;
+  const desired = Math.min(560, container);
+  const aspect = 760 / 560;
+  canvas.width = Math.max(420, Math.floor(desired));
+  canvas.height = Math.floor(canvas.width * aspect);
+
+  setupBoard();
   buildLegend();
   if (moneyReady()) await refreshBalance();
   loop();
