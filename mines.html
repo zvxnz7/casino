@@ -11,7 +11,6 @@
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
 
-  <!-- Page styles -->
   <link rel="stylesheet" href="mines.css" />
 </head>
 <body>
@@ -26,26 +25,44 @@
       </div>
     </header>
 
-    <section class="board-wrap">
-      <div id="gameBoard" class="board" aria-label="5 by 5 mines grid">
-        <!-- 25 cells -->
-        <div class="cell" data-cell></div><div class="cell" data-cell></div><div class="cell" data-cell></div><div class="cell" data-cell></div><div class="cell" data-cell></div>
-        <div class="cell" data-cell></div><div class="cell" data-cell></div><div class="cell" data-cell></div><div class="cell" data-cell></div><div class="cell" data-cell></div>
-        <div class="cell" data-cell></div><div class="cell" data-cell></div><div class="cell" data-cell></div><div class="cell" data-cell></div><div class="cell" data-cell></div>
-        <div class="cell" data-cell></div><div class="cell" data-cell></div><div class="cell" data-cell></div><div class="cell" data-cell></div><div class="cell" data-cell></div>
-        <div class="cell" data-cell></div><div class="cell" data-cell></div><div class="cell" data-cell></div><div class="cell" data-cell></div><div class="cell" data-cell></div>
+    <section class="layout">
+      <!-- LEFT: game -->
+      <div class="left">
+        <div class="controls-row">
+          <label class="field">
+            <span>Mines</span>
+            <input id="minesInput" type="range" min="1" max="24" step="1" value="5" />
+            <strong id="minesVal">5</strong>
+          </label>
+        </div>
+
+        <div class="board-wrap">
+          <div id="gameBoard" class="board" aria-label="5 by 5 mines grid">
+            <!-- 25 cells -->
+            <div class="cell" data-cell></div><div class="cell" data-cell></div><div class="cell" data-cell></div><div class="cell" data-cell></div><div class="cell" data-cell></div>
+            <div class="cell" data-cell></div><div class="cell" data-cell></div><div class="cell" data-cell></div><div class="cell" data-cell></div><div class="cell" data-cell></div>
+            <div class="cell" data-cell></div><div class="cell" data-cell></div><div class="cell" data-cell></div><div class="cell" data-cell></div><div class="cell" data-cell></div>
+            <div class="cell" data-cell></div><div class="cell" data-cell></div><div class="cell" data-cell></div><div class="cell" data-cell></div><div class="cell" data-cell></div>
+            <div class="cell" data-cell></div><div class="cell" data-cell></div><div class="cell" data-cell></div><div class="cell" data-cell></div><div class="cell" data-cell></div>
+          </div>
+        </div>
+
+        <div class="controls">
+          <input type="number" id="betAmount" placeholder="Enter Amount" min="1" step="1" />
+          <button id="betButton">Place bet</button>
+        </div>
+
+        <p id="msg" class="msg" role="alert" aria-live="polite"></p>
       </div>
-    </section>
 
-    <section class="controls">
-      <input type="number" id="betAmount" placeholder="Enter Amount" min="1" step="1" />
-      <button id="betButton">Place bet</button>
+      <!-- RIGHT: fake winners feed -->
+      <aside class="right">
+        <h3>Winners</h3>
+        <ul id="feed" class="feed"></ul>
+      </aside>
     </section>
-
-    <p id="msg" class="msg" role="alert" aria-live="polite"></p>
   </main>
 
-  <!-- Game logic -->
   <script src="mines.js"></script>
 </body>
 </html>
