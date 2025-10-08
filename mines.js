@@ -1,8 +1,8 @@
 /* ==========================================================
-   Mines — adjustable mines + winners feed + responsive UI
+   Mines — adjustable mines + pretty slider + spammy winners
    - Uses localStorage.username
    - Firestore transactions for wallet
-   - Fair-ish multipliers derived from combinatorics with RTP
+   - Multipliers scale with mines using combinatorics + RTP
 ========================================================== */
 
 /* ---------- Firebase init ---------- */
@@ -19,30 +19,32 @@ if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
 const db = firebase.firestore();
 
 /* ---------- DOM ---------- */
-const backBTN = document.getElementById('backBtn');
-const cells = [...document.querySelectorAll('[data-cell]')];
-const betButton = document.getElementById('betButton');
-const betAmountEl = document.getElementById('betAmount');
-const moneyAmountEl = document.getElementById('moneyAmount');
+const backBTN      = document.getElementById('backBtn');
+const cells        = [...document.querySelectorAll('[data-cell]')];
+const betButton    = document.getElementById('betButton');
+const betAmountEl  = document.getElementById('betAmount');
+const moneyAmountEl= document.getElementById('moneyAmount');
 const multiplierEl = document.getElementById('multiplier');
-const msgEl = document.getElementById('msg');
-const minesInput = document.getElementById('minesInput');
-const minesVal = document.getElementById('minesVal');
-const feedEl = document.getElementById('feed');
+const msgEl        = document.getElementById('msg');
+const feedEl       = document.getElementById('feed');
+
+const minesRange   = document.getElementById('minesRange');
+const minesNum     = document.getElementById('minesNum');
+const fieldBox     = document.querySelector('.field');
 
 /* ---------- State ---------- */
-const GRID = 25; // 5x5 fixed grid
+const GRID = 25; // 5x5
 let username = localStorage.getItem('username') || null;
 
 let wallet = 0;
 let inRound = false;
 let betAmount = 0;
-let mines = Number(minesInput.value) || 5;
+let mines = Number(minesRange.value) || 5;
 let bombMask = new Array(GRID).fill(0);
 let revealedSafe = 0;
 let multiplier = 1;
 
-// RTP (house edge) — tune 94..99 (%)
+// Target RTP (house edge): 0.97 = 97%
 const RTP = 0.97;
 
 /* ---------- Helpers ---------- */
@@ -55,7 +57,7 @@ const fmt = v => {
 };
 function setMsg(t){ msgEl.textContent = t || ''; }
 
-/* ---------- Firestore wallet ---------- */
+/* ---------- Wallet (Firestore) ---------- */
 async function userRef(){
   if (!username) throw new Error('No username (log in first)');
   const q = await db.collection('users').where('username','==',username).limit(1).get();
@@ -88,6 +90,25 @@ async function credit(amount){
   });
 }
 
+/* ---------- Mines UI sync ---------- */
+function setMinesUI(v){
+  v = Math.max(1, Math.min(24, Number(v)||5));
+  minesRange.value = String(v);
+  minesNum.value   = String(v);
+  mines = v;
+  // bubble % and label
+  const pct = (v - 1) / (24 - 1);
+  fieldBox.style.setProperty('--mines-pct', pct);
+  fieldBox.setAttribute('data-mines', `${v} mines`);
+}
+function lockMinesControls(locked){
+  minesRange.disabled = locked;
+  minesNum.disabled   = locked;
+  fieldBox.style.opacity = locked ? .6 : 1;
+}
+minesRange.addEventListener('input', () => { if (!inRound) setMinesUI(minesRange.value); });
+minesNum.addEventListener('input',   () => { if (!inRound) setMinesUI(minesNum.value); });
+
 /* ---------- Game core ---------- */
 function resetBoard(){
   bombMask = new Array(GRID).fill(0);
@@ -110,11 +131,7 @@ function shuffleBombs(nBombs){
   for (let i=0;i<nBombs;i++) bombMask[idx[i]] = 1;
 }
 
-/* Fair-ish multiplier:
-   After s safe picks with M mines on N cells:
-   payout multiplier (100% RTP) = Π_{i=0..s-1} ( (N - i) / (N - M - i) )
-   We then multiply by RTP (<1).
-*/
+/* Multiplier: product of safe odds for each pick, times RTP */
 function calcMultiplier(safeOpens, totalCells=GRID, mineCount=mines){
   if (safeOpens <= 0) return 1;
   let prod = 1;
@@ -141,9 +158,9 @@ async function onPlaceBet(){
     if (!Number.isFinite(betAmount) || betAmount<=0) return setMsg('Enter a valid bet');
     if (betAmount > wallet) return setMsg('Insufficient funds');
 
-    // lock mines at round start
-    mines = Math.max(1, Math.min(24, Number(minesInput.value)||5));
-    minesInput.disabled = true;
+    // capture & lock mines for the round
+    setMinesUI(minesRange.value);
+    lockMinesControls(true);
 
     await debit(betAmount);
     await refreshMoney();
@@ -167,7 +184,7 @@ async function onCashOut(){
     revealAll();
     inRound = false;
     betButton.textContent = 'Place bet';
-    minesInput.disabled = false;
+    lockMinesControls(false);
     setMsg(`Cashed out: +$${payout.toFixed(2)}`);
   }catch(e){
     setMsg(e.message || 'Cashout failed');
@@ -180,17 +197,16 @@ function onCellClick(e){
   const cell = e.currentTarget;
   const idx = cells.indexOf(cell);
   if (idx < 0) return;
-  // ignore already revealed
   if (cell.classList.contains('win') || cell.classList.contains('red') || cell.classList.contains('blue')) return;
 
   if (bombMask[idx] === 1){
-    // BOOM — round ends, no payout
+    // BOOM — round ends
     cell.style.backgroundImage = "url('bomb.png')";
     cell.classList.add('red','gameover');
     revealAll();
     inRound = false;
     betButton.textContent = 'Place bet';
-    minesInput.disabled = false;
+    lockMinesControls(false);
     setMsg('Boom! Better luck next round.');
   } else {
     // Safe
@@ -202,26 +218,31 @@ function onCellClick(e){
   }
 }
 
-/* ---------- Winners feed (fake) ---------- */
+/* ---------- Winners feed (spammy, non-scroll) ---------- */
 const NAMES = [
-  'NeonWolf','Pixie','Orbit','Luna','Ghost','Riley','Kade','Nova','Vera','Kai',
-  'Blitz','Ash','Zed','Echo','Milo','Nika','Ivy','Lex','Rune','Skye'
+  'NovaApex','ShadowHex','Valkyr1e','DriftRogue','ByteBlade','ZenithX','MintyMara',
+  'ArtemisGG','ToxicNeko','RiftRunner','EchoFrost','Kairo','Sparx','N1ghtOwl',
+  'CrimsonFox','BlueNyx','Jetstream','Lilith','RazorLeaf','OrbitZed','Kojiro','Nero',
+  'SolarMist','TeraByte','Vexa','AstraNova','NeonLynx','Yuki','ZeroPhase','KitsuneQT'
 ];
 function rand(min,max){ return Math.random()*(max-min)+min; }
 function choice(arr){ return arr[Math.floor(Math.random()*arr.length)]; }
 function fakeWinItem(){
   const name = choice(NAMES);
-  const m = Math.random()<0.3 ? +(rand(3,8)).toFixed(2) : +(rand(1.2,3)).toFixed(2);
-  const amt = +(rand(2,50)).toFixed(2);
-  const total = +(amt*m).toFixed(2);
-  const bombs = Math.floor(rand(2,18));
+  // frequent small wins + occasional pops
+  const bet = +(rand(0.5, 12)).toFixed(2);
+  const mult = Math.random()<0.12 ? +(rand(5,12)).toFixed(2)
+             : Math.random()<0.50 ? +(rand(2,5)).toFixed(2)
+             : +(rand(1.2,2)).toFixed(2);
+  const total = +(bet * mult).toFixed(2);
   const li = document.createElement('li');
+  li.className = 'feed-item';
   li.innerHTML = `<span class="who">${name}</span><span class="win">+$${total.toFixed(2)}</span>`;
-  li.title = `Mines: ${bombs} • ${m}x`;
   return li;
 }
-function startFeed() {
-  if (!document.getElementById('feedAnim')) {
+function startFeed(){
+  // add tiny fade-in anim once
+  if (!document.getElementById('feedAnim')){
     const style = document.createElement('style');
     style.id = 'feedAnim';
     style.textContent = `
@@ -230,27 +251,20 @@ function startFeed() {
     `;
     document.head.appendChild(style);
   }
-
-  // preload 8
-  for (let i = 0; i < 8; i++) {
-    const li = fakeWinItem();
-    feedEl.appendChild(li);
-    requestAnimationFrame(() => li.classList.add('show'));
+  // seed a few
+  for (let i=0;i<8;i++){
+    const li = fakeWinItem(); feedEl.appendChild(li);
+    requestAnimationFrame(()=> li.classList.add('show'));
   }
-
-  // spam every 500–900ms
-  setInterval(() => {
+  // spam loop — 450–900ms
+  setInterval(()=>{
     const li = fakeWinItem();
     feedEl.prepend(li);
-    requestAnimationFrame(() => li.classList.add('show'));
-
-    // Smooth trim: remove the last child *after fade-in*
-    if (feedEl.children.length > 20) {
-      feedEl.removeChild(feedEl.lastChild);
-    }
-  }, Math.floor(rand(500, 900)));
+    requestAnimationFrame(()=> li.classList.add('show'));
+    // trim to keep within fixed height (no scroll)
+    while (feedEl.children.length > 35) feedEl.removeChild(feedEl.lastChild);
+  }, Math.floor(rand(450, 900)));
 }
-
 
 /* ---------- Events ---------- */
 backBTN.addEventListener('click', ()=> location.href = 'games.html');
@@ -259,19 +273,12 @@ betButton.addEventListener('click', () => {
   setMsg('');
   if (!inRound) onPlaceBet(); else onCashOut();
 });
-minesInput.addEventListener('input', ()=>{
-  minesVal.textContent = minesInput.value;
-  if (!inRound) { // only rebuild visuals between rounds
-    // no shuffle here; just update label
-  }
-});
 
 /* ---------- Init ---------- */
 (async function init(){
   if (!username){ setMsg('Please log in first.'); return; }
-  minesVal.textContent = minesInput.value;
   await refreshMoney();
   if (!betAmountEl.value) betAmountEl.value = Math.max(1, Math.floor(wallet * 0.01));
-  startFeed();
+  setMinesUI(minesRange.value);   // initialize slider/number/bubble
+  startFeed();                    // start non-scroll spam feed
 })();
-
