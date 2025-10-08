@@ -1,11 +1,11 @@
 /* ==========================================================
-   Mines — responsive, modern wallet integration (Firestore)
-   - Uses localStorage.username like your current build
-   - Single source of truth for balance with transactions
-   - Cleaner state flow: Place bet ↔ Cash out
+   Mines — adjustable mines + winners feed + responsive UI
+   - Uses localStorage.username
+   - Firestore transactions for wallet
+   - Fair-ish multipliers derived from combinatorics with RTP
 ========================================================== */
 
-/* ---------- Firebase init (kept local to this page) ---------- */
+/* ---------- Firebase init ---------- */
 const firebaseConfig = {
   apiKey: "AIzaSyCbSyocu6e8t7UTLJ4VBwULgBxt38ggw1k",
   authDomain: "casino777-7.firebaseapp.com",
@@ -20,26 +20,30 @@ const db = firebase.firestore();
 
 /* ---------- DOM ---------- */
 const backBTN = document.getElementById('backBtn');
-const gameBoard = document.getElementById('gameBoard');
 const cells = [...document.querySelectorAll('[data-cell]')];
 const betButton = document.getElementById('betButton');
 const betAmountEl = document.getElementById('betAmount');
 const moneyAmountEl = document.getElementById('moneyAmount');
 const multiplierEl = document.getElementById('multiplier');
 const msgEl = document.getElementById('msg');
+const minesInput = document.getElementById('minesInput');
+const minesVal = document.getElementById('minesVal');
+const feedEl = document.getElementById('feed');
 
 /* ---------- State ---------- */
-const GRID = 25;               // 5x5
-const DEFAULT_MINES = 5;
+const GRID = 25; // 5x5 fixed grid
 let username = localStorage.getItem('username') || null;
 
 let wallet = 0;
 let inRound = false;
 let betAmount = 0;
-let mines = DEFAULT_MINES;
+let mines = Number(minesInput.value) || 5;
 let bombMask = new Array(GRID).fill(0);
-let revealedSafe = 0;          // number of safe tiles opened this round
+let revealedSafe = 0;
 let multiplier = 1;
+
+// RTP (house edge) — tune 94..99 (%)
+const RTP = 0.97;
 
 /* ---------- Helpers ---------- */
 const fmt = v => {
@@ -67,7 +71,6 @@ async function refreshMoney(){
   }catch(e){ setMsg(e.message || 'Wallet error'); }
 }
 async function debit(amount){
-  amount = Number(amount);
   const ref = await userRef();
   await db.runTransaction(async tx=>{
     const s = await tx.get(ref);
@@ -77,7 +80,6 @@ async function debit(amount){
   });
 }
 async function credit(amount){
-  amount = Number(amount);
   const ref = await userRef();
   await db.runTransaction(async tx=>{
     const s = await tx.get(ref);
@@ -98,7 +100,7 @@ function resetBoard(){
     c.style.backgroundImage = '';
   });
 }
-function shuffleBombs(nBombs = DEFAULT_MINES){
+function shuffleBombs(nBombs){
   const idx = [...Array(GRID).keys()];
   for (let i=idx.length-1;i>0;i--){
     const j = Math.floor(Math.random()*(i+1));
@@ -107,12 +109,22 @@ function shuffleBombs(nBombs = DEFAULT_MINES){
   bombMask.fill(0);
   for (let i=0;i<nBombs;i++) bombMask[idx[i]] = 1;
 }
-function calcMultiplier(safeOpens){
+
+/* Fair-ish multiplier:
+   After s safe picks with M mines on N cells:
+   payout multiplier (100% RTP) = Π_{i=0..s-1} ( (N - i) / (N - M - i) )
+   We then multiply by RTP (<1).
+*/
+function calcMultiplier(safeOpens, totalCells=GRID, mineCount=mines){
   if (safeOpens <= 0) return 1;
-  // keep your original curve, but return Number
-  const val = 0.83 * Math.pow(1.32, safeOpens);
-  return +val.toFixed(2);
+  let prod = 1;
+  for (let i=0;i<safeOpens;i++){
+    prod *= ( (totalCells - i) / (totalCells - mineCount - i) );
+  }
+  const m = Math.max(1, prod * RTP);
+  return +m.toFixed(m>=10 ? 2 : 3);
 }
+
 function revealAll(){
   cells.forEach((cell, i)=>{
     if (bombMask[i] === 1){ cell.style.backgroundImage = "url('bomb.png')"; cell.classList.add('red'); }
@@ -124,9 +136,14 @@ function revealAll(){
 async function onPlaceBet(){
   try{
     await refreshMoney();
+    if (inRound) return;
     betAmount = Math.floor(Number(betAmountEl.value));
     if (!Number.isFinite(betAmount) || betAmount<=0) return setMsg('Enter a valid bet');
     if (betAmount > wallet) return setMsg('Insufficient funds');
+
+    // lock mines at round start
+    mines = Math.max(1, Math.min(24, Number(minesInput.value)||5));
+    minesInput.disabled = true;
 
     await debit(betAmount);
     await refreshMoney();
@@ -135,13 +152,14 @@ async function onPlaceBet(){
     shuffleBombs(mines);
     inRound = true;
     betButton.textContent = 'Cash out';
-    setMsg('Pick tiles! Avoid bombs.');
+    setMsg(`Pick tiles! Mines: ${mines}`);
   }catch(e){
     setMsg(e.message || 'Bet failed');
   }
 }
 async function onCashOut(){
   try{
+    if (!inRound) return;
     const payout = +(betAmount * multiplier).toFixed(2);
     await credit(payout);
     await refreshMoney();
@@ -149,6 +167,7 @@ async function onCashOut(){
     revealAll();
     inRound = false;
     betButton.textContent = 'Place bet';
+    minesInput.disabled = false;
     setMsg(`Cashed out: +$${payout.toFixed(2)}`);
   }catch(e){
     setMsg(e.message || 'Cashout failed');
@@ -171,15 +190,44 @@ function onCellClick(e){
     revealAll();
     inRound = false;
     betButton.textContent = 'Place bet';
+    minesInput.disabled = false;
     setMsg('Boom! Better luck next round.');
   } else {
     // Safe
     cell.style.backgroundImage = "url('gem.png')";
     cell.classList.add('win');
     revealedSafe++;
-    multiplier = calcMultiplier(revealedSafe);
+    multiplier = calcMultiplier(revealedSafe, GRID, mines);
     multiplierEl.textContent = String(multiplier);
   }
+}
+
+/* ---------- Winners feed (fake) ---------- */
+const NAMES = [
+  'NeonWolf','Pixie','Orbit','Luna','Ghost','Riley','Kade','Nova','Vera','Kai',
+  'Blitz','Ash','Zed','Echo','Milo','Nika','Ivy','Lex','Rune','Skye'
+];
+function rand(min,max){ return Math.random()*(max-min)+min; }
+function choice(arr){ return arr[Math.floor(Math.random()*arr.length)]; }
+function fakeWinItem(){
+  const name = choice(NAMES);
+  const m = Math.random()<0.3 ? +(rand(3,8)).toFixed(2) : +(rand(1.2,3)).toFixed(2);
+  const amt = +(rand(2,50)).toFixed(2);
+  const total = +(amt*m).toFixed(2);
+  const bombs = Math.floor(rand(2,18));
+  const li = document.createElement('li');
+  li.innerHTML = `<span class="who">${name}</span><span class="win">+$${total.toFixed(2)}</span>`;
+  li.title = `Mines: ${bombs} • ${m}x`;
+  return li;
+}
+function startFeed(){
+  // seed a few
+  for(let i=0;i<6;i++){ feedEl.appendChild(fakeWinItem()); }
+  setInterval(()=>{
+    const li = fakeWinItem();
+    feedEl.prepend(li);
+    while (feedEl.children.length > 20) feedEl.removeChild(feedEl.lastChild);
+  }, Math.floor(rand(1400, 2600)));
 }
 
 /* ---------- Events ---------- */
@@ -189,11 +237,18 @@ betButton.addEventListener('click', () => {
   setMsg('');
   if (!inRound) onPlaceBet(); else onCashOut();
 });
+minesInput.addEventListener('input', ()=>{
+  minesVal.textContent = minesInput.value;
+  if (!inRound) { // only rebuild visuals between rounds
+    // no shuffle here; just update label
+  }
+});
 
 /* ---------- Init ---------- */
 (async function init(){
   if (!username){ setMsg('Please log in first.'); return; }
+  minesVal.textContent = minesInput.value;
   await refreshMoney();
-  // optional: default bet to a sensible fraction of balance
   if (!betAmountEl.value) betAmountEl.value = Math.max(1, Math.floor(wallet * 0.01));
+  startFeed();
 })();
