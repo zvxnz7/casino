@@ -220,15 +220,37 @@ function fakeWinItem(){
   li.title = `Mines: ${bombs} • ${m}x`;
   return li;
 }
-function startFeed(){
-  // seed a few
-  for(let i=0;i<6;i++){ feedEl.appendChild(fakeWinItem()); }
-  setInterval(()=>{
+function startFeed() {
+  if (!document.getElementById('feedAnim')) {
+    const style = document.createElement('style');
+    style.id = 'feedAnim';
+    style.textContent = `
+      .feed-item{opacity:0; transform:translateY(8px); transition:.2s ease}
+      .feed-item.show{opacity:1; transform:none}
+    `;
+    document.head.appendChild(style);
+  }
+
+  // preload 8
+  for (let i = 0; i < 8; i++) {
+    const li = fakeWinItem();
+    feedEl.appendChild(li);
+    requestAnimationFrame(() => li.classList.add('show'));
+  }
+
+  // spam every 500–900ms
+  setInterval(() => {
     const li = fakeWinItem();
     feedEl.prepend(li);
-    while (feedEl.children.length > 20) feedEl.removeChild(feedEl.lastChild);
-  }, Math.floor(rand(1400, 2600)));
+    requestAnimationFrame(() => li.classList.add('show'));
+
+    // Smooth trim: remove the last child *after fade-in*
+    if (feedEl.children.length > 20) {
+      feedEl.removeChild(feedEl.lastChild);
+    }
+  }, Math.floor(rand(500, 900)));
 }
+
 
 /* ---------- Events ---------- */
 backBTN.addEventListener('click', ()=> location.href = 'games.html');
@@ -252,3 +274,4 @@ minesInput.addEventListener('input', ()=>{
   if (!betAmountEl.value) betAmountEl.value = Math.max(1, Math.floor(wallet * 0.01));
   startFeed();
 })();
+
