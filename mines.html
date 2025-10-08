@@ -6,7 +6,7 @@
   <title>Casino — Mines</title>
   <link rel="icon" href="./images/favicon.ico" type="image/x-icon">
 
-  <!-- Firebase v8 (stable) -->
+  <!-- Firebase v8 (stable to match your stack) -->
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
@@ -14,7 +14,7 @@
   <link rel="stylesheet" href="mines.css" />
 </head>
 <body>
-  <button id="backBtn" class="back">&lt;</button>
+  <button id="backBtn" class="back" aria-label="Back to games">&lt;</button>
 
   <main class="wrap">
     <header class="topbar">
@@ -26,13 +26,13 @@
     </header>
 
     <section class="layout">
-      <!-- LEFT: game -->
+      <!-- LEFT: Game -->
       <div class="left">
         <div class="controls-row">
-          <label class="field">
+          <label class="field" data-mines="5 mines">
             <span>Mines</span>
-            <input id="minesInput" type="range" min="1" max="24" step="1" value="5" />
-            <strong id="minesVal">5</strong>
+            <input id="minesRange" type="range" min="1" max="24" step="1" value="5" />
+            <input id="minesNum"   type="number" min="1" max="24" step="1" value="5" aria-label="Mines count" />
           </label>
         </div>
 
@@ -55,10 +55,10 @@
         <p id="msg" class="msg" role="alert" aria-live="polite"></p>
       </div>
 
-      <!-- RIGHT: fake winners feed -->
+      <!-- RIGHT: Winners feed (non-scrollable) -->
       <aside class="right">
         <h3>Winners</h3>
-        <ul id="feed" class="feed"></ul>
+        <ul id="feed" class="feed" aria-live="polite"></ul>
       </aside>
     </section>
   </main>
