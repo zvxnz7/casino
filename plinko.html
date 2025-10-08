@@ -11,7 +11,7 @@
     <header class="header">
       <div class="title">
         <h1>Casino Plinko</h1>
-        <span class="sub">Physics • RTP-normalized payouts</span>
+        <span class="sub">Smooth physics • Instant buckets</span>
       </div>
       <div class="balance">
         <span>Balance</span>
@@ -21,7 +21,8 @@
 
     <section class="game">
       <div class="left">
-        <canvas id="plinko" width="560" height="760" aria-label="Plinko board"></canvas>
+        <!-- W I D E R board (responsive up to 860px) -->
+        <canvas id="plinko" width="860" height="700" aria-label="Plinko board"></canvas>
         <div id="legend" class="legend"></div>
       </div>
 
@@ -39,8 +40,8 @@
 
           <label class="row">
             <span>Rows</span>
-            <input id="rows" type="range" min="8" max="16" step="1" value="12" />
-            <span class="range-val"><strong id="rowsVal">12</strong></span>
+            <input id="rows" type="range" min="8" max="18" step="1" value="14" />
+            <span class="range-val"><strong id="rowsVal">14</strong></span>
           </label>
 
           <label class="row">
@@ -62,11 +63,11 @@
 
           <div class="buttons">
             <button id="drop" class="primary">Drop</button>
-            <button id="auto" class="ghost">Auto x10</button>
+            <button id="auto" class="ghost">Drop x10</button>
           </div>
 
           <p class="hint">
-            Peg hits are 50/50; physics is softened. Slot dividers prevent rolling into a different multiplier.
+            Buckets pay on contact & balls vanish. You can drop many at once.
           </p>
           <p id="msg" class="msg" role="alert" aria-live="polite"></p>
         </div>
@@ -79,7 +80,7 @@
     </section>
 
     <footer class="footer">
-      <small>RNG nudges via <code>crypto.getRandomValues</code>.</small>
+      <small>crypto RNG for micro-nudges • Firestore wallet via your app.js</small>
     </footer>
   </main>
 
@@ -88,10 +89,10 @@
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
 
-  <!-- Your existing initializer (MUST come before plinko.js) -->
+  <!-- YOUR initializer (must come before plinko.js) -->
   <script src="app.js"></script>
 
-  <!-- Plinko game -->
+  <!-- Game -->
   <script src="plinko.js"></script>
 </body>
 </html>
