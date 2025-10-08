@@ -6,7 +6,7 @@
   <title>Casino — Mines</title>
   <link rel="icon" href="./images/favicon.ico" type="image/x-icon">
 
-  <!-- Firebase v8 (stable to match your stack) -->
+  <!-- Firebase v8 (stable) -->
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
@@ -29,7 +29,7 @@
       <!-- LEFT: Game -->
       <div class="left">
         <div class="controls-row">
-          <label class="field" data-mines="5 mines">
+          <label class="field">
             <span>Mines</span>
             <input id="minesRange" type="range" min="1" max="24" step="1" value="5" />
             <input id="minesNum"   type="number" min="1" max="24" step="1" value="5" aria-label="Mines count" />
@@ -37,13 +37,9 @@
         </div>
 
         <div class="board-wrap">
-          <div id="gameBoard" class="board" aria-label="5 by 5 mines grid">
+          <div id="gameBoard" class="board">
             <!-- 25 cells -->
-            <div class="cell" data-cell></div><div class="cell" data-cell></div><div class="cell" data-cell></div><div class="cell" data-cell></div><div class="cell" data-cell></div>
-            <div class="cell" data-cell></div><div class="cell" data-cell></div><div class="cell" data-cell></div><div class="cell" data-cell></div><div class="cell" data-cell></div>
-            <div class="cell" data-cell></div><div class="cell" data-cell></div><div class="cell" data-cell></div><div class="cell" data-cell></div><div class="cell" data-cell></div>
-            <div class="cell" data-cell></div><div class="cell" data-cell></div><div class="cell" data-cell></div><div class="cell" data-cell></div><div class="cell" data-cell></div>
-            <div class="cell" data-cell></div><div class="cell" data-cell></div><div class="cell" data-cell></div><div class="cell" data-cell></div><div class="cell" data-cell></div>
+            ${Array(25).fill('<div class="cell" data-cell></div>').join('')}
           </div>
         </div>
 
@@ -55,10 +51,10 @@
         <p id="msg" class="msg" role="alert" aria-live="polite"></p>
       </div>
 
-      <!-- RIGHT: Winners feed (non-scrollable) -->
+      <!-- RIGHT: Winners feed -->
       <aside class="right">
         <h3>Winners</h3>
-        <ul id="feed" class="feed" aria-live="polite"></ul>
+        <ul id="feed" class="feed"></ul>
       </aside>
     </section>
   </main>
