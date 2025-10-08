@@ -29,20 +29,14 @@ body{
 .layout{
   display:grid; grid-template-columns: 1fr 280px; gap:16px; align-items:start;
 }
-.left{
-  background:linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.02));
-  border:1px solid var(--border); border-radius:16px; padding:14px; box-shadow:var(--shadow)
-}
-.right{
+.left,.right{
   background:linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.02));
   border:1px solid var(--border); border-radius:16px; padding:14px; box-shadow:var(--shadow)
 }
 .right h3{margin:0 0 8px 0; font-size:1rem}
 
 /* Board */
-.board-wrap{
-  border:1px solid var(--border); border-radius:14px; padding:12px; box-shadow:var(--shadow)
-}
+.board-wrap{ border:1px solid var(--border); border-radius:14px; padding:12px; box-shadow:var(--shadow) }
 .board{
   --cell:clamp(44px, 12vw, 100px);
   --gap:clamp(8px, 2vw, 16px);
@@ -63,7 +57,7 @@ body{
 .cell.blue{ background-color:#1a2542; }
 .cell.gameover{ transform:none; }
 
-/* Controls */
+/* Bet controls */
 .controls{ margin:12px auto 4px; display:flex; gap:10px; justify-content:center; align-items:center }
 #betAmount{
   width:200px; padding:10px 12px; border-radius:12px; background:#1b2351; color:#fff;
@@ -77,21 +71,17 @@ body{
 
 .msg{ text-align:center; min-height:1.2em; color:var(--bad); margin-top:6px }
 
-/* Mines slider + number (pretty) */
-.controls-row{
-  display:flex; justify-content:center; align-items:center; gap:12px; margin:12px 0;
-}
+/* Mines slider & number */
+.controls-row{ display:flex; justify-content:center; align-items:center; gap:12px; margin:12px 0; }
 .field{
   display:flex; align-items:center; gap:10px; background:var(--panel); border:1px solid var(--border);
-  padding:10px 12px; border-radius:12px; box-shadow:var(--shadow); position:relative;
+  padding:10px 12px; border-radius:12px; box-shadow:var(--shadow);
 }
 .field span{color:var(--muted); font-size:.95rem; min-width:3.5ch}
 #minesNum{
   width:64px; padding:8px 10px; text-align:center; border-radius:10px;
   background:var(--panel2); color:var(--text); border:1px solid var(--border); outline:none;
 }
-
-/* range track */
 #minesRange{
   -webkit-appearance:none; appearance:none; width:min(320px, 60vw); height:10px;
   background:linear-gradient(90deg, #7c5cff, #3dd6ff); border-radius:999px; outline:none; border:none;
@@ -109,26 +99,23 @@ body{
 #minesRange::-moz-range-track{ height:10px; background:transparent; }
 #minesRange:focus{ outline:none; }
 
-/* value bubble */
-.field::after{
-  content: attr(data-mines);
-  position:absolute; top:-30px;
-  left: clamp(60px, calc(18px + (var(--mines-pct, 0) * (min(320px, 60vw) - 22px))), calc(min(320px, 60vw) - 22px));
-  transform: translateX(-50%);
-  font-size:.8rem; background:#0b0f22; color:#e7e9ff;
-  padding:3px 6px; border-radius:8px; border:1px solid var(--border);
-}
-
-/* Winners feed — fixed height, non-scrollable */
+/* Winners feed (non-scroll) */
 .feed{
   list-style:none; padding:0; margin:0;
   display:grid; gap:8px;
-  height: clamp(320px, 50vh, 500px); /* fixed visual space, no scroll */
+  height:clamp(320px,50vh,500px);
   overflow:hidden; user-select:none;
-  -webkit-overflow-scrolling: none;
-  overscroll-behavior: contain;
 }
 .feed::-webkit-scrollbar{ display:none; }
+
+.feed-item{display:flex; justify-content:space-between; align-items:center;
+  background:var(--panel2); border-radius:10px; padding:8px 10px; font-size:.92rem;
+  transition:background .3s ease;
+}
+.feed-item.small  { background:#162e1e; color:#8affb3; }
+.feed-item.medium { background:#172940; color:#88c4ff; }
+.feed-item.large  { background:#332112; color:#ffd16b; font-weight:700; }
+.feed-item.huge   { background:#3c1313; color:#ff7e7e; font-weight:700; }
 
 /* Mobile stack */
 @media (max-width: 900px){
