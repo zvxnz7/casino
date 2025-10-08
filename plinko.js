@@ -1,17 +1,18 @@
 /* -------------------------------------------------
-   Casino Plinko — New physics + lifted buckets + wider layout
-   Uses firebase via your existing app.js. Include app.js BEFORE this file.
+   Casino Plinko — Responsive fit + no center force
+   Bigger peg spacing, smaller pegs & ball, buckets pay on contact, multi-drop.
+   Uses your app.js Firebase init. Include app.js BEFORE this file.
 --------------------------------------------------- */
 
-/* ===== Firestore MONEY adapter with guards ===== */
+/* ===== Firestore MONEY adapter (guarded) ===== */
 (function(){
   function disableUI(reason){
     const drop = document.getElementById('drop');
     const auto = document.getElementById('auto');
-    const msg = document.getElementById('msg');
+    const msg  = document.getElementById('msg');
     if (drop) drop.disabled = true;
     if (auto) auto.disabled = true;
-    if (msg) { msg.textContent = reason; msg.style.color = '#ff6b6b'; }
+    if (msg)  { msg.textContent = reason; msg.style.color = '#ff6b6b'; }
     window.MONEY = {
       async getBalance(){ throw new Error(reason); },
       async debit(){ throw new Error(reason); },
@@ -22,22 +23,22 @@
     if (!window.firebase || !firebase.apps) return disableUI('Load Firebase SDKs first.');
     if (!firebase.apps.length) return disableUI('Initialize Firebase in app.js before plinko.js.');
     const USERNAME = localStorage.getItem('username');
-    if (!USERNAME) return disableUI('Log in first (username missing).');
+    if (!USERNAME) return disableUI('Log in first.');
 
     const db = firebase.firestore();
-    let userDocRef = null;
-    async function ref(){
-      if (userDocRef) return userDocRef;
+    let refCache = null;
+    async function userRef(){
+      if (refCache) return refCache;
       const q = await db.collection('users').where('username','==',USERNAME).limit(1).get();
       if (q.empty) throw new Error('Username not found.');
-      userDocRef = q.docs[0].ref; return userDocRef;
+      refCache = q.docs[0].ref; return refCache;
     }
     const r2 = n => Math.round(n*100)/100;
 
-    async function getBalance(){ const d = await (await ref()).get(); return Number((d.data()||{}).money ?? 0); }
+    async function getBalance(){ const d = await (await userRef()).get(); return Number((d.data()||{}).money ?? 0); }
     async function debit(amount){
       amount = Number(amount); if (!(amount>0)) throw new Error('Invalid bet');
-      const R = await ref(); await db.runTransaction(async tx=>{
+      const R = await userRef(); await db.runTransaction(async tx=>{
         const s = await tx.get(R); const cur = Number((s.data()||{}).money ?? 0);
         if (cur < amount) throw new Error('Insufficient funds.');
         tx.update(R, { money: r2(cur-amount) });
@@ -45,7 +46,7 @@
     }
     async function credit(amount){
       amount = Number(amount); if (!(amount>=0)) throw new Error('Invalid payout');
-      const R = await ref(); await db.runTransaction(async tx=>{
+      const R = await userRef(); await db.runTransaction(async tx=>{
         const s = await tx.get(R); const cur = Number((s.data()||{}).money ?? 0);
         tx.update(R, { money: r2(cur+amount) });
       });
@@ -57,74 +58,73 @@
 /* -------------------------------------------------
    DOM
 --------------------------------------------------- */
-const canvas = document.getElementById('plinko');
-const ctx = canvas.getContext('2d', { alpha: true });
-
-const balanceEl = document.getElementById('balance');
-const betEl = document.getElementById('bet');
-const rowsEl = document.getElementById('rows');
-const rowsValEl = document.getElementById('rowsVal');
-const riskEl = document.getElementById('risk');
-const rtpEl = document.getElementById('rtp');
+const canvas   = document.getElementById('plinko');
+const ctx      = canvas.getContext('2d', { alpha: true });
+const balanceEl= document.getElementById('balance');
+const betEl    = document.getElementById('bet');
+const rowsEl   = document.getElementById('rows');
+const rowsValEl= document.getElementById('rowsVal');
+const riskEl   = document.getElementById('risk');
+const rtpEl    = document.getElementById('rtp');
 const rtpValEl = document.getElementById('rtpVal');
-const dropBtn = document.getElementById('drop');
-const autoBtn = document.getElementById('auto');
+const dropBtn  = document.getElementById('drop');
+const autoBtn  = document.getElementById('auto');
 const legendEl = document.getElementById('legend');
 const recentEl = document.getElementById('recent');
-const msgEl = document.getElementById('msg');
-const chips = [...document.querySelectorAll('.chip')];
+const msgEl    = document.getElementById('msg');
+const chips    = [...document.querySelectorAll('.chip')];
 
 /* -------------------------------------------------
-   Physics (redone)
+   Config
 --------------------------------------------------- */
-// board sizing
-const SIDE_PAD = 22;           // left/right inside canvas
-const TOP_Y = 80;              // first row
-const BUCKET_H = 56;           // bucket height
-const GAP_TO_BUCKETS = 26;     // gap from last row to top of buckets (moved UP)
-const LABEL_OFFSET = 16;       // multiplier text vertical offset inside bucket
-const MAX_CANVAS_W = 860;      // wider
-
 let rows = Number(rowsEl.value);
-let spacing = 46;              // recalculated per layout
-const MIN_SPACING = 34;
-const MAX_SPACING = 60;
 
-// balls/pegs
-const pegRadius = 5;
-const ballRadius = 6;
+// spacing (bigger gaps) — computed per screen with a boost factor
+let spacing = 50;                 // will be recomputed
+const SPACING_BOOST = 1.12;       // >1 makes rows farther apart
+const MIN_SPACING   = 38;         // increased
+const MAX_SPACING   = 72;
 
-// new dynamics
-let gravity = 0.44;            // faster drop
-let restitution = 0.18;        // soft peg bounce
-let air = 0.992;               // global drag (semi-implicit)
-let pegTangent = 0.85;         // tangential damping on peg hit
-let wallDamping = 0.62;        // extra damp on side walls
-let maxSpeed = 9.5;            // cap for numerical stability
-let centerPull = 0.004;        // gentle global pull to midline
+const SIDE_PAD = 20;
+const TOP_Y    = 70;              // start a bit higher
+
+// smaller pegs & ball
+const pegRadius  = 4;
+const ballRadius = 5;
+
+// physics (no center force)
+let gravity       = 0.42;
+let restitution   = 0.18;
+let air           = 0.992;
+let pegTangent    = 0.86;
+let wallDamping   = 0.66;
+let maxSpeed      = 9.2;
 
 const wall = { left: 6, right: 6, top: 6, bottom: 26 };
 
-/* buckets & geometry */
-let pegs = [];
-let slots = [];                // slot centers
-let buckets = [];              // {x,y,w,h,index,color}
-let balls = [];
+// buckets
+const BUCKET_H        = 56;
+const GAP_TO_BUCKETS  = 24;       // distance from last peg row to bucket top (lifted)
+const BUCKET_LABEL_OFF= 4;
+
+let pegs    = [];
+let slots   = [];
+let buckets = [];
+let balls   = [];
 let multipliers = [];
 const MAX_CONCURRENT = 36;
 
 /* RNG */
-function rngBool(){ const u = new Uint32Array(1); crypto.getRandomValues(u); return (u[0] & 1)===1; }
+function rngBool(){ const u = new Uint32Array(1); crypto.getRandomValues(u); return (u[0]&1)===1; }
 
 /* -------------------------------------------------
-   Combinatorics / multipliers
+   Math for multipliers
 --------------------------------------------------- */
-function nCk(n,k){ if(k<0||k>n)return 0; if(k===0||k===n)return 1; k=Math.min(k,n-k);
-  let num=1,den=1; for(let i=1;i<=k;i++){ num*= (n-(k-i)); den*=i; } return num/den; }
+function nCk(n,k){ if(k<0||k>n)return 0; if(k===0||k===n)return 1; k=Math.min(k,n-k); let num=1,den=1; for(let i=1;i<=k;i++){ num*= (n-(k-i)); den*=i; } return num/den; }
 function generateMultipliers(n, risk, rtpPct){
   const probs = Array.from({length:n+1},(_,k)=> nCk(n,k)/Math.pow(2,n));
   const center = n/2;
-  const beta = risk==='high'?0.95:risk==='medium'?0.62:0.35;   // redesigned curves
+  const beta = risk==='high'?0.95:risk==='medium'?0.62:0.35;
   const shape = probs.map((_,k)=> Math.pow(1.0 + Math.abs(k-center), beta));
   const rtp = rtpPct/100;
   const shapeEV = shape.reduce((s,sk,k)=> s + probs[k]*sk, 0);
@@ -133,23 +133,40 @@ function generateMultipliers(n, risk, rtpPct){
 }
 
 /* -------------------------------------------------
-   Layout (auto spacing, buckets moved up)
+   Responsive canvas sizing (fits PC & mobile)
+--------------------------------------------------- */
+function sizeCanvasToViewport(){
+  // Width: fit container and viewport
+  const containerW = (document.querySelector('.left')?.clientWidth || window.innerWidth) - 24;
+  const maxW = Math.min(containerW, window.innerWidth - 16);
+  const targetW = Math.max(360, Math.floor(maxW));
+
+  // Height: fit viewport height minus UI (header + controls)
+  const reserved = window.innerWidth < 980 ? 240 : 260; // space for right panel or below controls
+  const maxH = Math.max(480, Math.min(window.innerHeight - reserved, 860));
+  const targetH = Math.floor(maxH);
+
+  canvas.width  = targetW;
+  canvas.height = targetH;
+}
+
+/* -------------------------------------------------
+   Layout (recomputed every resize/setting change)
 --------------------------------------------------- */
 function computeSpacing(){
   const n = Number(rowsEl.value);
   const cols = n + 1;
 
-  // width fit
   const usableW = canvas.width - 2*SIDE_PAD;
-  const sX = usableW / cols;
+  const sX = (usableW / cols);
 
-  // height fit: top -> rows -> gap -> buckets -> bottom wall
-  const bucketTop = TOP_Y + n*spacing + GAP_TO_BUCKETS;
-  const catchH = BUCKET_H + GAP_TO_BUCKETS;
-  const usableH = canvas.height - TOP_Y - (catchH + wall.bottom);
-  const sY = usableH / n;
+  // height: ensure we can fit rows + gap + buckets + bottom
+  const usableH = canvas.height - TOP_Y - (GAP_TO_BUCKETS + BUCKET_H + wall.bottom);
+  const sY = (usableH / n);
 
-  spacing = Math.max(MIN_SPACING, Math.min(MAX_SPACING, Math.floor(Math.min(sX, sY || MAX_SPACING))));
+  let s = Math.min(sX, sY);
+  s = Math.max(MIN_SPACING, Math.min(MAX_SPACING, s * SPACING_BOOST));
+  spacing = Math.floor(s);
 }
 
 function setupBoard(){
@@ -158,34 +175,33 @@ function setupBoard(){
 
   // pegs
   pegs.length = 0;
-  for (let r=0; r<rows; r++){
+  for (let r=0;r<rows;r++){
     const count = r+1;
     const boardW = canvas.width - 2*SIDE_PAD;
     const offsetX = SIDE_PAD + (boardW - count*spacing)/2 + spacing/2;
     const y = TOP_Y + r*spacing;
-    for (let i=0;i<count;i++) pegs.push({ x: offsetX + i*spacing, y });
+    for (let i=0;i<count;i++){
+      pegs.push({ x: offsetX + i*spacing, y });
+    }
   }
 
-  // slots
+  // slots (centers)
   const count = rows + 1;
   const boardW = canvas.width - 2*SIDE_PAD;
   const offsetX = SIDE_PAD + (boardW - count*spacing)/2 + spacing/2;
   slots = Array.from({length:count}, (_,i)=> offsetX + i*spacing);
 
-  // buckets aligned to slot centers, lifted up
+  // buckets aligned to slots, lifted up
   const bucketTop = Math.min(
-    canvas.height - wall.bottom - BUCKET_H - 6,
+    canvas.height - wall.bottom - BUCKET_H - 4,
     TOP_Y + rows*spacing + GAP_TO_BUCKETS
   );
-
   buckets.length = 0;
   for (let i=0;i<slots.length;i++){
-    const left = (i===0) ? (slots[i] - spacing/2) : (slots[i-1] + slots[i])/2;
+    const left  = (i===0) ? (slots[i] - spacing/2) : (slots[i-1] + slots[i])/2;
     const right = (i===slots.length-1) ? (slots[i] + spacing/2) : (slots[i] + slots[i+1])/2;
     const w = right - left;
-    buckets.push({
-      x:left, y:bucketTop, w, h:BUCKET_H, index:i, color:bucketColor(i, slots.length)
-    });
+    buckets.push({ x:left, y:bucketTop, w, h:BUCKET_H, index:i, color:bucketColor(i, slots.length) });
   }
 
   buildLegend();
@@ -193,17 +209,9 @@ function setupBoard(){
 
 function bucketColor(i, n){
   const center = (n-1)/2; const d = Math.abs(i-center)/center;
-  const stops = [
-    {t:0.00, c:'#FFC73A'},  // center yellow
-    {t:0.35, c:'#FF9E2E'},  // orange
-    {t:0.70, c:'#FF6A3A'},  // deeper orange-red
-    {t:1.00, c:'#FF4D4D'}   // edges red
-  ];
-  // simple piecewise
-  if (d<=0.35) return stops[0].c;
-  if (d<=0.70) return stops[1].c;
-  if (d<=1.00) return stops[2].c;
-  return stops[3].c;
+  if (d<=0.35) return '#FFC73A';
+  if (d<=0.70) return '#FF9E2E';
+  return '#FF4D4D';
 }
 
 /* -------------------------------------------------
@@ -218,64 +226,57 @@ function addRecent(bin, mult, bet, win){
 }
 
 /* -------------------------------------------------
-   New physics step (semi-implicit, capped, center-seeking)
+   Physics step (no center force; bigger gaps; smaller collisions)
 --------------------------------------------------- */
-function spawnBall(bet, xJitter=0){
+function spawnBall(bet, jitter=0){
   if (balls.length >= MAX_CONCURRENT) return;
-  balls.push({ x: canvas.width/2 + xJitter, y: 26, vx: 0, vy: 0, r: ballRadius, bet });
+  balls.push({ x: canvas.width/2 + jitter, y: 24, vx: 0, vy: 0, r: ballRadius, bet });
 }
 
 function updateBall(b){
-  // add gravity + global center pull
+  // gravity
   b.vy += gravity;
-  b.vx += centerPull * ((canvas.width/2) - b.x);
 
-  // integrate (semi-implicit)
+  // integrate with drag & cap
   b.vx *= air; b.vy *= air;
-  // speed cap
   const sp = Math.hypot(b.vx, b.vy);
-  if (sp > maxSpeed){ const s = maxSpeed / sp; b.vx *= s; b.vy *= s; }
+  if (sp > maxSpeed){ const s = maxSpeed/sp; b.vx*=s; b.vy*=s; }
   b.x += b.vx; b.y += b.vy;
 
-  // walls with heavy side damping
+  // walls
   if (b.x - b.r < wall.left){ b.x = wall.left + b.r; b.vx *= -restitution*wallDamping; }
   if (b.x + b.r > canvas.width - wall.right){ b.x = canvas.width - wall.right - b.r; b.vx *= -restitution*wallDamping; }
   if (b.y - b.r < wall.top){ b.y = wall.top + b.r; b.vy *= -restitution; }
 
-  // peg collisions with tangential damping + tiny unbiased nudge
+  // pegs (with tangential damping, smaller random nudge)
   const near = spacing + 8;
   for (const p of pegs){
     if (Math.abs(b.y - p.y) > near) continue;
     const dx=b.x-p.x, dy=b.y-p.y, min=b.r+pegRadius, d2=dx*dx+dy*dy;
     if (d2 < min*min){
       const d = Math.sqrt(d2)||1e-4, nx=dx/d, ny=dy/d;
-      // separate
-      const overlap = min - d + 0.25;
+      const overlap = min - d + 0.20;
       b.x += nx*overlap; b.y += ny*overlap;
 
-      // resolve normal impulse
       const vn = b.vx*nx + b.vy*ny;
-      const vt = b.vx*(-ny) + b.vy*(nx); // tangential
-      // reflect normal with restitution; damp tangential
+      const vt = b.vx*(-ny) + b.vy*(nx);
       const newVn = -vn * restitution;
       const newVt = vt * pegTangent;
-
-      // back to x,y
       b.vx = newVn*nx + newVt*(-ny);
       b.vy = newVn*ny + newVt*( nx);
 
-      // micro randomness (smaller)
-      b.vx += (rngBool()? 0.22 : -0.22);
+      // tiny unbiased nudge (smaller because pegs are smaller)
+      b.vx += (rngBool()? 0.18 : -0.18);
     }
   }
 
-  // bucket contact: pay & remove immediately
-  const contactY = TOP_Y + rows*spacing + Math.max(6, GAP_TO_BUCKETS - 6); // a bit higher
+  // bucket contact — pay & remove on contact line just above bucket top
+  const contactY = buckets.length ? (buckets[0].y - 6) : (canvas.height - wall.bottom - BUCKET_H - 6);
   if (b.y + b.r >= contactY){
     for (const k of buckets){
       if (b.x >= k.x && b.x <= k.x + k.w){
         onBallBucket(b, k.index);
-        b.y = 1e9; // kill
+        b.y = 1e9;
         break;
       }
     }
@@ -283,7 +284,7 @@ function updateBall(b){
 }
 
 /* -------------------------------------------------
-   Render (wider & cleaner)
+   Render
 --------------------------------------------------- */
 function roundRect(x,y,w,h,r){
   ctx.beginPath();
@@ -297,7 +298,7 @@ function roundRect(x,y,w,h,r){
 function renderBoard(){
   ctx.clearRect(0,0,canvas.width,canvas.height);
 
-  // soft inner border
+  // soft inner walls
   ctx.globalAlpha = 0.25;
   ctx.fillStyle = '#000';
   ctx.fillRect(0,0,wall.left,canvas.height);
@@ -305,51 +306,30 @@ function renderBoard(){
   ctx.fillRect(0,0,canvas.width,wall.top);
   ctx.globalAlpha = 1;
 
-  // buckets (rounded, lifted)
-  for (let i=0;i<buckets.length;i++){
-    const b = buckets[i];
-    const color = b.color;
-    // base
-    ctx.fillStyle = color;
-    roundRect(b.x, b.y, b.w, b.h, 8);
-    ctx.fill();
-    // glow top line
-    ctx.globalAlpha = 0.25;
-    ctx.fillStyle = '#ffffff';
-    ctx.fillRect(b.x, b.y, b.w, 2);
-    ctx.globalAlpha = 1;
-
-    // label
-    ctx.fillStyle = '#09131a';
-    ctx.font = 'bold 12px system-ui, -apple-system, Segoe UI, Roboto';
-    ctx.textAlign = 'center';
-    ctx.fillText(`${multipliers[i]}×`, b.x + b.w/2, b.y + b.h/2 + 4);
-  }
-
-  // pegs with subtle shadow
-  ctx.fillStyle = 'rgba(216,220,255,0.95)';
-  pegs.forEach(p => {
-    ctx.beginPath();
-    ctx.arc(p.x,p.y,pegRadius,0,Math.PI*2);
-    ctx.fill();
+  // buckets
+  buckets.forEach((b,i)=>{
+    ctx.fillStyle = b.color;
+    roundRect(b.x,b.y,b.w,b.h,8); ctx.fill();
+    ctx.globalAlpha = 0.25; ctx.fillStyle = '#fff'; ctx.fillRect(b.x,b.y,b.w,2); ctx.globalAlpha = 1;
+    ctx.fillStyle = '#09131a'; ctx.font = 'bold 12px system-ui, -apple-system, Segoe UI, Roboto';
+    ctx.textAlign = 'center'; ctx.fillText(`${multipliers[i]}×`, b.x + b.w/2, b.y + b.h/2 + BUCKET_LABEL_OFF);
   });
 
-  // balls (radial-ish look)
+  // pegs
+  ctx.fillStyle = 'rgba(216,220,255,0.95)';
+  pegs.forEach(p => { ctx.beginPath(); ctx.arc(p.x,p.y,pegRadius,0,Math.PI*2); ctx.fill(); });
+
+  // balls
   balls.forEach(b => {
     const g = ctx.createRadialGradient(b.x-2,b.y-2,1,b.x,b.y,b.r+1);
-    g.addColorStop(0,'#ffd1d1');
-    g.addColorStop(1,'#ff6b6b');
+    g.addColorStop(0,'#ffd1d1'); g.addColorStop(1,'#ff6b6b');
     ctx.fillStyle = g;
-    ctx.beginPath();
-    ctx.arc(b.x,b.y,b.r,0,Math.PI*2);
-    ctx.fill();
+    ctx.beginPath(); ctx.arc(b.x,b.y,b.r,0,Math.PI*2); ctx.fill();
   });
 
   // bottom bar
-  ctx.globalAlpha = 0.25;
-  ctx.fillStyle = '#000';
-  ctx.fillRect(0, canvas.height - wall.bottom, canvas.width, wall.bottom);
-  ctx.globalAlpha = 1;
+  ctx.globalAlpha = 0.25; ctx.fillStyle = '#000';
+  ctx.fillRect(0, canvas.height - wall.bottom, canvas.width, wall.bottom); ctx.globalAlpha = 1;
 }
 
 /* -------------------------------------------------
@@ -370,7 +350,7 @@ async function onBallBucket(ball, binIndex){
     const mult = multipliers[binIndex] ?? 0;
     const win = +(ball.bet * mult).toFixed(2);
     if (win > 0){
-      await window.MONEY.credit(win, { game:'plinko', type:'payout', bet: ball.bet, multiplier: mult, rows, risk: riskEl.value });
+      await window.MONEY.credit(win, { game:'plinko', type:'payout', bet: ball.bet, multiplier: mult, rows: Number(rowsEl.value), risk: riskEl.value });
     }
     addRecent(binIndex, mult, ball.bet, win);
   }catch(e){ console.error(e); setMsg(e.message || 'Payout error.'); }
@@ -378,7 +358,7 @@ async function onBallBucket(ball, binIndex){
 }
 
 /* -------------------------------------------------
-   Drop logic (multi)
+   Drop (multi supported)
 --------------------------------------------------- */
 async function startRound(count=1){
   setMsg('');
@@ -390,9 +370,8 @@ async function startRound(count=1){
   try{
     await window.MONEY.debit(bet * count, { game:'plinko', type:'bet', bet, count, rows:Number(rowsEl.value), risk:riskEl.value });
     setupBoard();
-    // spread launch across width & a few frames so they don't merge
     for (let i=0;i<count;i++){
-      const jitter = (Math.random()-0.5) * spacing * 0.7;
+      const jitter = (Math.random()-0.5) * spacing * 0.8;
       spawnBall(bet, jitter);
     }
     await refreshBalance();
@@ -400,7 +379,7 @@ async function startRound(count=1){
 }
 
 /* -------------------------------------------------
-   Legend + multipliers
+   Legend
 --------------------------------------------------- */
 function buildLegend(){
   multipliers = generateMultipliers(Number(rowsEl.value), riskEl.value, Number(rtpEl.value));
@@ -414,7 +393,7 @@ function buildLegend(){
 }
 
 /* -------------------------------------------------
-   Events / responsive
+   Events + responsive sizing
 --------------------------------------------------- */
 dropBtn.addEventListener('click', () => startRound(1));
 autoBtn.addEventListener('click', () => startRound(10));
@@ -426,25 +405,18 @@ riskEl.addEventListener('change', buildLegend);
 rtpEl.addEventListener('input', () => { rtpValEl.textContent = `${rtpEl.value}%`; buildLegend(); });
 
 let resizeRAF;
-function resizeCanvas(){
-  const container = (document.querySelector('.left')?.clientWidth || MAX_CANVAS_W) - 32;
-  const desired = Math.min(MAX_CANVAS_W, container);
-  const aspect = 700 / 860; // keep it wide
-  canvas.width = Math.max(640, Math.floor(desired));
-  canvas.height = Math.floor(canvas.width * aspect);
-  setupBoard();
-}
-window.addEventListener('resize', () => {
-  if (resizeRAF) cancelAnimationFrame(resizeRAF);
-  resizeRAF = requestAnimationFrame(resizeCanvas);
-});
+function doResize(){ sizeCanvasToViewport(); setupBoard(); }
+function onResize(){ if (resizeRAF) cancelAnimationFrame(resizeRAF); resizeRAF = requestAnimationFrame(doResize); }
+window.addEventListener('resize', onResize);
+window.addEventListener('orientationchange', onResize);
 
 /* -------------------------------------------------
    Init
 --------------------------------------------------- */
 (async function init(){
-  resizeCanvas();            // also calls setupBoard()
+  sizeCanvasToViewport(); // fits screen (PC + mobile)
+  setupBoard();
   buildLegend();
-  try { await refreshBalance(); } catch {}
+  try{ await refreshBalance(); }catch{}
   loop();
 })();
