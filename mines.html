@@ -37,9 +37,13 @@
         </div>
 
         <div class="board-wrap">
-          <div id="gameBoard" class="board">
+          <div id="gameBoard" class="board" aria-label="5 by 5 mines grid">
             <!-- 25 cells -->
-            ${Array(25).fill('<div class="cell" data-cell></div>').join('')}
+            <div class="cell" data-cell></div><div class="cell" data-cell></div><div class="cell" data-cell></div><div class="cell" data-cell></div><div class="cell" data-cell></div>
+            <div class="cell" data-cell></div><div class="cell" data-cell></div><div class="cell" data-cell></div><div class="cell" data-cell></div><div class="cell" data-cell></div>
+            <div class="cell" data-cell></div><div class="cell" data-cell></div><div class="cell" data-cell></div><div class="cell" data-cell></div><div class="cell" data-cell></div>
+            <div class="cell" data-cell></div><div class="cell" data-cell></div><div class="cell" data-cell></div><div class="cell" data-cell></div><div class="cell" data-cell></div>
+            <div class="cell" data-cell></div><div class="cell" data-cell></div><div class="cell" data-cell></div><div class="cell" data-cell></div><div class="cell" data-cell></div>
           </div>
         </div>
 
@@ -51,10 +55,10 @@
         <p id="msg" class="msg" role="alert" aria-live="polite"></p>
       </div>
 
-      <!-- RIGHT: Winners feed -->
+      <!-- RIGHT: Winners feed (non-scrollable + color coded) -->
       <aside class="right">
         <h3>Winners</h3>
-        <ul id="feed" class="feed"></ul>
+        <ul id="feed" class="feed" aria-live="polite"></ul>
       </aside>
     </section>
   </main>
