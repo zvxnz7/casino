@@ -71,7 +71,7 @@ body{
 
 .msg{ text-align:center; min-height:1.2em; color:var(--bad); margin-top:6px }
 
-/* Mines slider & number */
+/* Mines slider & number (no hover bubble) */
 .controls-row{ display:flex; justify-content:center; align-items:center; gap:12px; margin:12px 0; }
 .field{
   display:flex; align-items:center; gap:10px; background:var(--panel); border:1px solid var(--border);
@@ -99,7 +99,7 @@ body{
 #minesRange::-moz-range-track{ height:10px; background:transparent; }
 #minesRange:focus{ outline:none; }
 
-/* Winners feed (non-scroll) */
+/* Winners feed — fixed height, non-scrollable, color-coded rows */
 .feed{
   list-style:none; padding:0; margin:0;
   display:grid; gap:8px;
@@ -108,10 +108,14 @@ body{
 }
 .feed::-webkit-scrollbar{ display:none; }
 
-.feed-item{display:flex; justify-content:space-between; align-items:center;
+.feed-item{
+  display:flex; justify-content:space-between; align-items:center;
   background:var(--panel2); border-radius:10px; padding:8px 10px; font-size:.92rem;
-  transition:background .3s ease;
+  opacity:0; transform:translateY(8px); transition:.2s ease;
 }
+.feed-item.show{ opacity:1; transform:none; }
+
+/* color tiers */
 .feed-item.small  { background:#162e1e; color:#8affb3; }
 .feed-item.medium { background:#172940; color:#88c4ff; }
 .feed-item.large  { background:#332112; color:#ffd16b; font-weight:700; }
