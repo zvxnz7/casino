@@ -1,5 +1,5 @@
 /* ==========================================================
-   Mines — adjustable mines, no slider bubble, color-coded feed
+   Mines — images fixed via inline SVGs; adjustable mines; color-coded feed
 ========================================================== */
 
 const firebaseConfig = {
@@ -36,7 +36,25 @@ let bombMask   = new Array(GRID).fill(0);
 let revealedSafe = 0;
 let multiplier = 1;
 
-const RTP = 0.97; // target house return
+const RTP = 0.97; // house return target
+
+/* ---------- Inline SVGs so icons ALWAYS display ---------- */
+const BOMB_SVG = `data:image/svg+xml;utf8,
+<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'>
+  <defs><radialGradient id='g' cx='30' cy='30' r='28'>
+    <stop offset='0' stop-color='%23555'/>
+    <stop offset='1' stop-color='%23111'/>
+  </radialGradient></defs>
+  <circle cx='30' cy='36' r='22' fill='url(%23g)'/>
+  <rect x='36' y='10' width='14' height='8' rx='2' fill='%23333'/>
+  <path d='M50 12c6-8 10-4 6 4' stroke='%23ff6b6b' stroke-width='3' fill='none' stroke-linecap='round'/>
+</svg>`.replace(/\n|\s{2,}/g,'');
+const GEM_SVG = `data:image/svg+xml;utf8,
+<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'>
+  <polygon points='32,6 6,24 18,58 46,58 58,24' fill='%2325d2b7' />
+  <polyline points='32,6 32,58' stroke='white' stroke-width='2' fill='none' opacity='.6'/>
+  <polyline points='6,24 58,24' stroke='white' stroke-width='2' fill='none' opacity='.4'/>
+</svg>`.replace(/\n|\s{2,}/g,'');
 
 /* ---------- Helpers ---------- */
 const fmt = v => {
@@ -126,8 +144,8 @@ function calcMultiplier(safe, N=GRID, M=mines){
 }
 function revealAll(){
   cells.forEach((cell,i)=>{
-    if (bombMask[i]){ cell.style.backgroundImage="url('bomb.png')"; cell.classList.add('red'); }
-    else { cell.style.backgroundImage="url('gem.png')"; cell.classList.add('blue'); }
+    if (bombMask[i]){ cell.style.backgroundImage = `url("${BOMB_SVG}")`; cell.classList.add('red'); }
+    else { cell.style.backgroundImage = `url("${GEM_SVG}")`; cell.classList.add('blue'); }
   });
 }
 
@@ -171,7 +189,7 @@ function onCellClick(e){
   if (cell.classList.contains('win') || cell.classList.contains('red') || cell.classList.contains('blue')) return;
 
   if (bombMask[idx]){
-    cell.style.backgroundImage = "url('bomb.png')";
+    cell.style.backgroundImage = `url("${BOMB_SVG}")`;
     cell.classList.add('red','gameover');
     revealAll();
     inRound = false;
@@ -179,7 +197,7 @@ function onCellClick(e){
     lockMinesControls(false);
     setMsg('💥 Boom!');
   } else {
-    cell.style.backgroundImage = "url('gem.png')";
+    cell.style.backgroundImage = `url("${GEM_SVG}")`;
     cell.classList.add('win');
     revealedSafe++;
     multiplier = calcMultiplier(revealedSafe);
@@ -195,9 +213,7 @@ const NAMES = [
 ];
 const rand   = (a,b)=>Math.random()*(b-a)+a;
 const choice = a=>a[Math.floor(Math.random()*a.length)];
-
 function tierForWin(amount){
-  // Tune thresholds as you like
   if (amount >= 150) return 'huge';
   if (amount >= 50)  return 'large';
   if (amount >= 15)  return 'medium';
@@ -216,12 +232,10 @@ function fakeWinItem(){
   return li;
 }
 function startFeed(){
-  // seed
   for (let i=0;i<8;i++){
     const li = fakeWinItem(); feedEl.appendChild(li);
     requestAnimationFrame(()=> li.classList.add('show'));
   }
-  // spam loop (trim to fit, no scroll)
   setInterval(()=>{
     const li = fakeWinItem();
     feedEl.prepend(li);
